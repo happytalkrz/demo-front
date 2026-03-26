@@ -1,203 +1,440 @@
-import React, { useState } from 'react';
-import { FiSearch, FiEdit, FiTrash2, FiPlus, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { useState, useMemo } from 'react';
+import { FiSearch, FiPlus, FiEdit, FiTrash2 } from 'react-icons/fi';
+import DataTable from '../components/common/DataTable';
+import Modal from '../components/common/Modal';
+import Dialog from '../components/common/Dialog';
+import Input from '../components/form/Input';
+import Select from '../components/form/Select';
+import { User, CreateUserData, UpdateUserData } from '../types/user';
+import { initialUsers, roleOptions, statusOptions } from '../data/userData';
+import { TableColumn } from '../types/common';
+import { useToast } from '../hooks/useToast';
 
 const Users = () => {
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [sortBy, setSortBy] = useState<string>('name');
-  
-  // 더미 사용자 데이터
-  const users = [
-    { id: 1, name: '김영희', email: 'kim@example.com', role: '관리자', status: '활성', lastLogin: '2023-10-15 08:45' },
-    { id: 2, name: '이철수', email: 'lee@example.com', role: '일반 사용자', status: '활성', lastLogin: '2023-10-14 14:20' },
-    { id: 3, name: '박지민', email: 'park@example.com', role: '일반 사용자', status: '휴면', lastLogin: '2023-09-30 10:15' },
-    { id: 4, name: '최동민', email: 'choi@example.com', role: '편집자', status: '활성', lastLogin: '2023-10-15 09:30' },
-    { id: 5, name: '정수연', email: 'jung@example.com', role: '일반 사용자', status: '활성', lastLogin: '2023-10-12 16:45' },
-    { id: 6, name: '강민준', email: 'kang@example.com', role: '일반 사용자', status: '비활성', lastLogin: '2023-08-25 11:20' },
-    { id: 7, name: '윤서연', email: 'yoon@example.com', role: '편집자', status: '활성', lastLogin: '2023-10-14 13:10' },
+  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+
+  // Modal states
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+
+  // Dialog states
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deletingUser, setDeletingUser] = useState<User | null>(null);
+
+  // Form states
+  const [formData, setFormData] = useState<CreateUserData>({
+    name: '',
+    email: '',
+    role: '일반 사용자',
+    status: '활성'
+  });
+  const [formErrors, setFormErrors] = useState<Partial<CreateUserData>>({});
+
+  const toast = useToast();
+
+  // Filter and search users
+  const filteredUsers = useMemo(() => {
+    return users.filter(user => {
+      const matchesSearch = searchTerm === '' ||
+        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesRole = roleFilter === '' || user.role === roleFilter;
+      const matchesStatus = statusFilter === '' || user.status === statusFilter;
+
+      return matchesSearch && matchesRole && matchesStatus;
+    });
+  }, [users, searchTerm, roleFilter, statusFilter]);
+
+  // Table columns
+  const columns: TableColumn<User>[] = [
+    {
+      key: 'id',
+      label: 'ID',
+      sortable: true,
+    },
+    {
+      key: 'name',
+      label: '이름',
+      sortable: true,
+    },
+    {
+      key: 'email',
+      label: '이메일',
+      sortable: true,
+    },
+    {
+      key: 'role',
+      label: '역할',
+      sortable: true,
+      render: (value: string) => (
+        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+          value === '관리자' ? 'bg-purple-100 text-purple-800' :
+          value === '편집자' ? 'bg-blue-100 text-blue-800' :
+          'bg-green-100 text-green-800'
+        }`}>
+          {value}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      label: '상태',
+      sortable: true,
+      render: (value: string) => (
+        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+          value === '활성' ? 'bg-green-100 text-green-800' :
+          value === '비활성' ? 'bg-red-100 text-red-800' :
+          'bg-yellow-100 text-yellow-800'
+        }`}>
+          {value}
+        </span>
+      ),
+    },
+    {
+      key: 'lastLogin',
+      label: '마지막 로그인',
+      sortable: true,
+    },
+    {
+      key: 'actions',
+      label: '관리',
+      render: (_, user: User) => (
+        <div className="flex items-center justify-end space-x-2">
+          <button
+            onClick={() => handleEditClick(user)}
+            className="text-gray-600 hover:text-blue-600 transition-colors"
+            title="편집"
+          >
+            <FiEdit className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => handleDeleteClick(user)}
+            className="text-gray-600 hover:text-red-600 transition-colors"
+            title="삭제"
+          >
+            <FiTrash2 className="w-4 h-4" />
+          </button>
+        </div>
+      ),
+    },
   ];
 
-  const handleSort = (column: string) => {
-    if (sortBy === column) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(column);
-      setSortOrder('asc');
+  // Form validation
+  const validateForm = (data: CreateUserData): Partial<CreateUserData> => {
+    const errors: Partial<CreateUserData> = {};
+
+    if (!data.name.trim()) {
+      errors.name = '이름을 입력해주세요.';
+    }
+
+    if (!data.email.trim()) {
+      errors.email = '이메일을 입력해주세요.';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+      errors.email = '올바른 이메일 형식을 입력해주세요.';
+    }
+
+    return errors;
+  };
+
+  // Event handlers
+  const handleAddClick = () => {
+    setFormData({
+      name: '',
+      email: '',
+      role: '일반 사용자',
+      status: '활성'
+    });
+    setFormErrors({});
+    setIsAddModalOpen(true);
+  };
+
+  const handleEditClick = (user: User) => {
+    setEditingUser(user);
+    setFormData({
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      status: user.status
+    });
+    setFormErrors({});
+    setIsEditModalOpen(true);
+  };
+
+  const handleDeleteClick = (user: User) => {
+    setDeletingUser(user);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleAddSubmit = () => {
+    const errors = validateForm(formData);
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+
+    // Check for duplicate email
+    if (users.some(user => user.email === formData.email)) {
+      setFormErrors({ email: '이미 등록된 이메일입니다.' });
+      return;
+    }
+
+    const newUser: User = {
+      ...formData,
+      id: Math.max(...users.map(u => u.id)) + 1,
+      lastLogin: '아직 로그인하지 않음',
+    };
+
+    setUsers([...users, newUser]);
+    setIsAddModalOpen(false);
+    toast.success('사용자 추가 완료', `${newUser.name}님이 성공적으로 추가되었습니다.`);
+  };
+
+  const handleEditSubmit = () => {
+    if (!editingUser) return;
+
+    const errors = validateForm(formData);
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+
+    // Check for duplicate email (excluding current user)
+    if (users.some(user => user.email === formData.email && user.id !== editingUser.id)) {
+      setFormErrors({ email: '이미 등록된 이메일입니다.' });
+      return;
+    }
+
+    const updatedUsers = users.map(user =>
+      user.id === editingUser.id
+        ? { ...user, ...formData }
+        : user
+    );
+
+    setUsers(updatedUsers);
+    setIsEditModalOpen(false);
+    setEditingUser(null);
+    toast.success('사용자 수정 완료', `${formData.name}님의 정보가 성공적으로 수정되었습니다.`);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!deletingUser) return;
+
+    const updatedUsers = users.filter(user => user.id !== deletingUser.id);
+    setUsers(updatedUsers);
+    setIsDeleteDialogOpen(false);
+    toast.success('사용자 삭제 완료', `${deletingUser.name}님이 성공적으로 삭제되었습니다.`);
+    setDeletingUser(null);
+  };
+
+  const handleFormChange = (field: keyof CreateUserData, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (formErrors[field]) {
+      setFormErrors(prev => ({ ...prev, [field]: undefined }));
     }
   };
 
-  const renderSortIcon = (column: string) => {
-    if (sortBy !== column) return null;
-    return sortOrder === 'asc' ? <FiChevronUp className="inline ml-1" /> : <FiChevronDown className="inline ml-1" />;
-  };
-
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold">사용자 관리</h1>
-        <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition flex items-center">
-          <FiPlus className="mr-2" /> 사용자 추가
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h1 className="text-2xl font-semibold text-gray-900">사용자 관리</h1>
+        <button
+          onClick={handleAddClick}
+          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+        >
+          <FiPlus className="w-4 h-4 mr-2" />
+          사용자 추가
         </button>
       </div>
 
-      {/* 검색 및 필터 */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <div className="md:w-1/4">
-          <select className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="">모든 역할</option>
-            <option value="admin">관리자</option>
-            <option value="editor">편집자</option>
-            <option value="user">일반 사용자</option>
-          </select>
-        </div>
-        <div className="md:w-1/4">
-          <select className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="">모든 상태</option>
-            <option value="active">활성</option>
-            <option value="inactive">비활성</option>
-            <option value="dormant">휴면</option>
-          </select>
-        </div>
-        <div className="md:w-2/4 relative">
-          <input
-            type="text"
+      {/* Filters */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Select
+          label="역할"
+          value={roleFilter}
+          onChange={(e) => setRoleFilter(e.target.value)}
+          options={[{ value: '', label: '모든 역할' }, ...roleOptions]}
+        />
+        <Select
+          label="상태"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          options={[{ value: '', label: '모든 상태' }, ...statusOptions]}
+        />
+        <div className="md:col-span-2">
+          <Input
+            label="검색"
             placeholder="이름 또는 이메일로 검색"
-            className="w-full p-2 pl-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            leftIcon={<FiSearch className="w-4 h-4 text-gray-400" />}
           />
-          <FiSearch className="absolute left-3 top-3 text-gray-400" />
         </div>
       </div>
 
-      {/* 사용자 목록 */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                <button 
-                  className="flex items-center font-medium uppercase tracking-wider"
-                  onClick={() => handleSort('id')}
-                >
-                  ID {renderSortIcon('id')}
-                </button>
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                <button
-                  className="flex items-center font-medium uppercase tracking-wider"
-                  onClick={() => handleSort('name')}
-                >
-                  이름 {renderSortIcon('name')}
-                </button>
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                <button
-                  className="flex items-center font-medium uppercase tracking-wider"
-                  onClick={() => handleSort('email')}
-                >
-                  이메일 {renderSortIcon('email')}
-                </button>
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                <button
-                  className="flex items-center font-medium uppercase tracking-wider"
-                  onClick={() => handleSort('role')}
-                >
-                  역할 {renderSortIcon('role')}
-                </button>
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                <button
-                  className="flex items-center font-medium uppercase tracking-wider"
-                  onClick={() => handleSort('status')}
-                >
-                  상태 {renderSortIcon('status')}
-                </button>
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                <button
-                  className="flex items-center font-medium uppercase tracking-wider"
-                  onClick={() => handleSort('lastLogin')}
-                >
-                  마지막 로그인 {renderSortIcon('lastLogin')}
-                </button>
-              </th>
-              <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                관리
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {users.map((user) => (
-              <tr key={user.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {user.id}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {user.name}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {user.email}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                    ${user.role === '관리자' ? 'bg-purple-100 text-purple-800' : 
-                    user.role === '편집자' ? 'bg-blue-100 text-blue-800' : 
-                    'bg-green-100 text-green-800'}`}>
-                    {user.role}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                    ${user.status === '활성' ? 'bg-green-100 text-green-800' : 
-                    user.status === '비활성' ? 'bg-red-100 text-red-800' : 
-                    'bg-yellow-100 text-yellow-800'}`}>
-                    {user.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {user.lastLogin}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button className="text-gray-600 hover:text-gray-900 mr-3">
-                    <FiEdit />
-                  </button>
-                  <button className="text-red-600 hover:text-red-900">
-                    <FiTrash2 />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Data Table */}
+      <div className="bg-white rounded-lg shadow">
+        <DataTable
+          data={filteredUsers}
+          columns={columns}
+        />
       </div>
 
-      {/* 페이지네이션 */}
-      <div className="flex justify-between items-center mt-6">
-        <div className="text-sm text-gray-700">
-          총 <span className="font-medium">7</span>명의 사용자
-        </div>
-        <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-          <a
-            href="#"
-            className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-          >
-            이전
-          </a>
-          <a
-            href="#"
-            className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600 hover:bg-blue-100"
-          >
-            1
-          </a>
-          <a
-            href="#"
-            className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-          >
-            다음
-          </a>
-        </nav>
+      {/* Results info */}
+      <div className="text-sm text-gray-700">
+        총 <span className="font-medium">{filteredUsers.length}</span>명의 사용자
+        {searchTerm || roleFilter || statusFilter ?
+          ` (전체 ${users.length}명 중)` : ''
+        }
       </div>
+
+      {/* Add Modal */}
+      <Modal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        title="사용자 추가"
+        size="md"
+      >
+        <div className="space-y-4">
+          <Input
+            label="이름"
+            placeholder="사용자 이름을 입력하세요"
+            value={formData.name}
+            onChange={(e) => handleFormChange('name', e.target.value)}
+            error={formErrors.name}
+          />
+          <Input
+            label="이메일"
+            type="email"
+            placeholder="이메일을 입력하세요"
+            value={formData.email}
+            onChange={(e) => handleFormChange('email', e.target.value)}
+            error={formErrors.email}
+          />
+          <Select
+            label="역할"
+            value={formData.role}
+            onChange={(e) => handleFormChange('role', e.target.value)}
+            options={roleOptions}
+          />
+          <Select
+            label="상태"
+            value={formData.status}
+            onChange={(e) => handleFormChange('status', e.target.value)}
+            options={statusOptions}
+          />
+          <div className="flex justify-end space-x-3 pt-4">
+            <button
+              onClick={() => setIsAddModalOpen(false)}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+            >
+              취소
+            </button>
+            <button
+              onClick={handleAddSubmit}
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            >
+              추가
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Edit Modal */}
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingUser(null);
+        }}
+        title="사용자 수정"
+        size="md"
+      >
+        <div className="space-y-4">
+          <Input
+            label="이름"
+            placeholder="사용자 이름을 입력하세요"
+            value={formData.name}
+            onChange={(e) => handleFormChange('name', e.target.value)}
+            error={formErrors.name}
+          />
+          <Input
+            label="이메일"
+            type="email"
+            placeholder="이메일을 입력하세요"
+            value={formData.email}
+            onChange={(e) => handleFormChange('email', e.target.value)}
+            error={formErrors.email}
+          />
+          <Select
+            label="역할"
+            value={formData.role}
+            onChange={(e) => handleFormChange('role', e.target.value)}
+            options={roleOptions}
+          />
+          <Select
+            label="상태"
+            value={formData.status}
+            onChange={(e) => handleFormChange('status', e.target.value)}
+            options={statusOptions}
+          />
+          <div className="flex justify-end space-x-3 pt-4">
+            <button
+              onClick={() => {
+                setIsEditModalOpen(false);
+                setEditingUser(null);
+              }}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+            >
+              취소
+            </button>
+            <button
+              onClick={handleEditSubmit}
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            >
+              수정
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete Dialog */}
+      <Dialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => {
+          setIsDeleteDialogOpen(false);
+          setDeletingUser(null);
+        }}
+        onConfirm={handleDeleteConfirm}
+        title="사용자 삭제"
+        message={
+          deletingUser ? (
+            <div>
+              <p className="mb-2">다음 사용자를 삭제하시겠습니까?</p>
+              <div className="bg-gray-50 p-3 rounded-md">
+                <p className="font-medium">{deletingUser.name}</p>
+                <p className="text-sm text-gray-600">{deletingUser.email}</p>
+              </div>
+              <p className="mt-2 text-sm text-gray-600">
+                이 작업은 되돌릴 수 없습니다.
+              </p>
+            </div>
+          ) : null
+        }
+        confirmText="삭제"
+        cancelText="취소"
+        variant="danger"
+      />
     </div>
   );
 };
 
-export default Users; 
+export default Users;
