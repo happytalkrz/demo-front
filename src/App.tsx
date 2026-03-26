@@ -1,4 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { ToastProvider } from './contexts/ToastContext'
+import { ToastContainer } from './components/common/Toast'
+import ProtectedRoute from './components/ProtectedRoute'
 import Login from './features/auth/pages/Login'
 import Register from './features/auth/pages/Register'
 import MainLayout from './layouts/MainLayout'
@@ -12,30 +15,42 @@ import AISummary from './pages/AISummary'
 import AIPermissions from './pages/AIPermissions'
 import PromptManagement from './pages/PromptManagement'
 import AIChatDemo from './pages/AIChatDemo'
+import NotFound from './pages/NotFound'
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
- {/* Authentication related routes */}
-  <Route path="/login" element={<Login />} />
-  <Route path="/register" element={<Register />} />
-  
- {/* Dashboard and other pages with main layout */}
-        <Route path="/" element={<MainLayout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="board" element={<Board />} />
-          <Route path="users" element={<Users />} />
-          <Route path="data-table" element={<DataTable />} />
-          <Route path="prompts" element={<Prompts />} />
-          <Route path="ai-summary" element={<AISummary />} />
-          <Route path="ai-permissions" element={<AIPermissions />} />
-          <Route path="prompt-management" element={<PromptManagement />} />
-          <Route path="ai-chat-demo" element={<AIChatDemo />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
-      </Routes>
+      <ToastProvider>
+        <Routes>
+          {/* Authentication related routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+
+          {/* Protected routes with main layout */}
+          <Route path="/" element={
+            <ProtectedRoute>
+              <MainLayout />
+            </ProtectedRoute>
+          }>
+            <Route index element={<Dashboard />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="board" element={<Board />} />
+            <Route path="users" element={<Users />} />
+            <Route path="data-table" element={<DataTable />} />
+            <Route path="prompts" element={<Prompts />} />
+            <Route path="ai-summary" element={<AISummary />} />
+            <Route path="ai-permissions" element={<AIPermissions />} />
+            <Route path="prompt-management" element={<PromptManagement />} />
+            <Route path="ai-chat-demo" element={<AIChatDemo />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
+
+          {/* 404 page */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+
+        <ToastContainer />
+      </ToastProvider>
     </BrowserRouter>
   )
 }
