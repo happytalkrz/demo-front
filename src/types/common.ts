@@ -34,3 +34,19 @@ export interface User {
   status: 'active' | 'inactive';
   createdAt: string;
 }
+
+// Dashboard 관련 타입
+export interface StatCardData {
+  icon: React.ComponentType<any>;
+  title: string;
+  value: string;
+  bgColor: string;
+  iconColor: string;
+}
+
+export interface ActivityItem {
+  id: number;
+  type: string;
+  description: string;
+  time: string;
+}
