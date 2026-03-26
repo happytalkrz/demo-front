@@ -50,3 +50,23 @@ export interface RegisterFormData {
 export interface FormErrors {
   [key: string]: string;
 }
+
+export interface StatCardData {
+  title: string;
+  value: string | number;
+  change: string;
+  trend: 'up' | 'down' | 'neutral';
+  icon?: any;
+  bgColor?: string;
+  iconColor?: string;
+}
+
+export interface ActivityItem {
+  id: string | number;
+  type: string;
+  message: string;
+  description?: string;
+  timestamp: string;
+  time?: string;
+  user?: string;
+}
