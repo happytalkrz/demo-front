@@ -26,3 +26,27 @@ export interface SelectOption {
   disabled?: boolean;
 }
 
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  status: 'active' | 'inactive';
+  createdAt: string;
+}
+
+export interface LoginFormData {
+  email: string;
+  password: string;
+}
+
+export interface RegisterFormData {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export interface FormErrors {
+  [key: string]: string;
+}
