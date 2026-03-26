@@ -1,5 +1,5 @@
 export interface TableColumn<T = any> {
-  key: keyof T;
+  key: keyof T | string;
   label: string;
   sortable?: boolean;
   render?: (value: any, row: T) => React.ReactNode;
@@ -26,11 +26,3 @@ export interface SelectOption {
   disabled?: boolean;
 }
 
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-  status: 'active' | 'inactive';
-  createdAt: string;
-}
