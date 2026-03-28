@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { FiSave, FiLock, FiUsers, FiMonitor, FiBell } from 'react-icons/fi';
+import { FiSave, FiLock, FiUsers, FiMonitor, FiBell, FiUser } from 'react-icons/fi';
+import Input from '../components/form/Input';
 
 const Settings = () => {
-  const [activeTab, setActiveTab] = useState('general');
+  const [activeTab, setActiveTab] = useState('profile');
 
   return (
     <div>
@@ -13,6 +14,17 @@ const Settings = () => {
         <div className="md:w-1/4">
           <div className="bg-white rounded-lg shadow">
             <ul>
+              <li>
+                <button
+                  className={`flex items-center w-full px-4 py-3 text-left ${
+                    activeTab === 'profile' ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-600' : 'hover:bg-gray-50'
+                  }`}
+                  onClick={() => setActiveTab('profile')}
+                >
+                  <FiUser className="mr-3" />
+                  <span>프로필</span>
+                </button>
+              </li>
               <li>
                 <button
                   className={`flex items-center w-full px-4 py-3 text-left ${
@@ -64,6 +76,38 @@ const Settings = () => {
         {/* 설정 내용 */}
         <div className="md:w-3/4">
           <div className="bg-white rounded-lg shadow p-6">
+            {activeTab === 'profile' && (
+              <div>
+                <h2 className="text-lg font-semibold mb-6">프로필 설정</h2>
+                <div className="space-y-6">
+                  <div className="flex items-center space-x-6">
+                    <div className="flex-shrink-0">
+                      <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center">
+                        <FiUser className="w-8 h-8 text-gray-400" />
+                      </div>
+                      <button className="mt-2 text-sm text-blue-600 hover:text-blue-800">
+                        이미지 변경
+                      </button>
+                    </div>
+                    <div className="flex-1 space-y-4">
+                      <Input
+                        label="이름"
+                        type="text"
+                        placeholder="이름을 입력하세요"
+                        defaultValue="관리자"
+                      />
+                      <Input
+                        label="이메일"
+                        type="email"
+                        placeholder="이메일을 입력하세요"
+                        defaultValue="admin@example.com"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {activeTab === 'general' && (
               <div>
                 <h2 className="text-lg font-semibold mb-6">일반 설정</h2>
