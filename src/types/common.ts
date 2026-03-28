@@ -1,3 +1,5 @@
+import React from 'react';
+
 export interface TableColumn<T = any> {
   key: keyof T | string;
   label: string;
