@@ -1,10 +1,22 @@
-import { FiBell, FiUser, FiLogOut } from 'react-icons/fi';
+import { FiBell, FiUser, FiLogOut, FiMenu } from 'react-icons/fi';
 
-const Header = () => {
+interface HeaderProps {
+  onToggleSidebar: () => void;
+}
+
+const Header = ({ onToggleSidebar }: HeaderProps) => {
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center">
+          {/* 햄버거 메뉴 버튼 (모바일만) */}
+          <button
+            onClick={onToggleSidebar}
+            className="p-2 text-gray-400 hover:text-gray-600 mr-4 md:hidden"
+          >
+            <FiMenu className="w-5 h-5" />
+          </button>
+
           <h2 className="text-lg font-medium text-gray-900">
             {/* 페이지 제목은 각 페이지에서 설정 */}
           </h2>
