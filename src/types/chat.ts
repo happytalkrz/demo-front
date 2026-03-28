@@ -16,4 +16,15 @@ export interface ChatSummary {
     result: string;
     nextAction: string;
   }
+}
+
+export interface Consultation {
+  id: string;
+  title: string;
+  date: string;
+  time: string;
+  counselor: string;
+  status: 'ongoing' | 'completed' | 'pending';
+  dialogue: ChatMessage[];
+  summary?: ChatSummary;
 } 

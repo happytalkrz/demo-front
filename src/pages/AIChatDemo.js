@@ -1,30 +1,21 @@
-import { jsxs as _jsxs, jsx as _jsx, Fragment as _Fragment } from "react/jsx-runtime";
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState } from 'react';
+import { FiMoreVertical, FiBookmark, FiFlag } from 'react-icons/fi';
 import ChatList from '../components/chat/ChatList';
 import ChatInput from '../components/chat/ChatInput';
-import ChatSelector from '../components/chat/ChatSelector';
-import { chatData } from '../data/chatData';
+import ChatSummary from '../components/chat/ChatSummary';
+import ConsultationList from '../components/chat/ConsultationList';
+import { consultations } from '../data/chatData';
+import { getSummaryByConsultationId } from '../data/summaryData';
 const AIChatDemo = () => {
     // 채팅 관련 상태
     const [selectedChatIndex, setSelectedChatIndex] = useState(0);
-    const [messages, setMessages] = useState(chatData[0].dialogue);
+    const [messages, setMessages] = useState(consultations[0].dialogue);
     const [role, setRole] = useState('customer');
-    // 요약 관련 상태
-    const [summary, setSummary] = useState(null);
-    const [summaryCount, setSummaryCount] = useState(0);
-    const [lastSummaryMessages, setLastSummaryMessages] = useState([]);
-    const [apiSummary, setApiSummary] = useState(null);
-    const [summaryTimestamp, setSummaryTimestamp] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    // 요약 영역 표시 상태
-    const [showSummary1, setShowSummary1] = useState(true);
-    const [showSummary2, setShowSummary2] = useState(true);
-    const [showSummary3, setShowSummary3] = useState(true);
-    const [showSummary4, setShowSummary4] = useState(true);
     // 채팅 데이터 변경 처리
     const handleChatSelect = (index) => {
         setSelectedChatIndex(index);
-        setMessages(chatData[index].dialogue);
+        setMessages(consultations[index].dialogue);
     };
     // 메시지 전송 처리
     const handleSendMessage = (message, selectedRole) => {

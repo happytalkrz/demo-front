@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FiSend } from 'react-icons/fi';
 
 interface ChatInputProps {
   onSendMessage: (message: string, role: 'customer' | 'counselor') => void;
@@ -50,11 +51,10 @@ const ChatInput = ({ onSendMessage, selectedRole, onRoleChange }: ChatInputProps
         />
         <button
           type="submit"
-          className="absolute right-2 top-1/2 transform -translate-y-1/2"
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded transition-colors"
+          disabled={!message.trim()}
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20 4L3 11L10 14L13 21L20 4Z" stroke="#888888" strokeWidth="2" strokeLinejoin="round"/>
-          </svg>
+          <FiSend className={`text-lg ${message.trim() ? 'text-gray-600' : 'text-gray-400'}`} />
         </button>
       </form>
     </div>
