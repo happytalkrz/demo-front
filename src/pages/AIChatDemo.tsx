@@ -2,10 +2,10 @@ import { useState } from 'react';
 import ChatList from '../components/chat/ChatList';
 import ChatInput from '../components/chat/ChatInput';
 import ChatSummary from '../components/chat/ChatSummary';
-import ChatSelector from '../components/chat/ChatSelector';
-import { chatData } from '../data/chatData';
+import ConsultationList from '../components/chat/ConsultationList';
+import { chatData, consultations } from '../data/chatData';
 import { mockSummaries } from '../data/summaryData';
-import { ChatMessage, ChatSummary as ChatSummaryType } from '../types/chat';
+import { ChatMessage, ChatSummary as ChatSummaryType, Consultation } from '../types/chat';
 
 // 응답 데이터 타입 정의
 interface SummaryResponse {
@@ -20,9 +20,11 @@ interface SummaryResponse {
 }
 
 const AIChatDemo = () => {
-  // 채팅 관련 상태
-  const [selectedChatIndex, setSelectedChatIndex] = useState(0);
-  const [messages, setMessages] = useState<ChatMessage[]>(chatData[0].dialogue);
+  // 상담 관련 상태
+  const [selectedConsultation, setSelectedConsultation] = useState<Consultation>(consultations[0]);
+  const [messages, setMessages] = useState<ChatMessage[]>(
+    consultations[0].chatDataIndex >= 0 ? chatData[consultations[0].chatDataIndex].dialogue : []
+  );
   const [role, setRole] = useState<'customer' | 'counselor'>('customer');
   
   // 요약 관련 상태
@@ -33,11 +35,15 @@ const AIChatDemo = () => {
   const [summaryTimestamp, setSummaryTimestamp] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   
-  
-  // 채팅 데이터 변경 처리
-  const handleChatSelect = (index: number) => {
-    setSelectedChatIndex(index);
-    setMessages(chatData[index].dialogue);
+
+  // 상담 선택 처리
+  const handleConsultationSelect = (consultation: Consultation) => {
+    setSelectedConsultation(consultation);
+    if (consultation.chatDataIndex >= 0) {
+      setMessages(chatData[consultation.chatDataIndex].dialogue);
+    } else {
+      setMessages([]); // 아직 채팅 데이터가 없는 상담
+    }
   };
   
   // 메시지 전송 처리
@@ -143,12 +149,21 @@ const AIChatDemo = () => {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* 채팅 영역 */}
-      <div className="w-1/2 flex flex-col bg-white h-[calc(100vh-50px)]">
+      {/* 좌측 상담 목록 영역 */}
+      <div className="w-1/4 bg-white border-r border-gray-200 h-[calc(100vh-50px)] overflow-y-auto">
+        <ConsultationList
+          consultations={consultations}
+          selectedId={selectedConsultation.id}
+          onSelect={handleConsultationSelect}
+        />
+      </div>
+
+      {/* 중앙 채팅 영역 */}
+      <div className="w-2/4 flex flex-col bg-white h-[calc(100vh-50px)]">
         <div className="p-3 border-b border-gray-200 flex items-center">
           <div className="flex items-center">
             <span className="text-sm">Tag</span>
-            <span className="ml-2 text-sm font-medium">memo</span>
+            <span className="ml-2 text-sm font-medium">{selectedConsultation.category}</span>
           </div>
           <div className="ml-auto flex space-x-1">
             <button className="w-5 h-5 flex items-center justify-center rounded border border-gray-300">
@@ -167,11 +182,9 @@ const AIChatDemo = () => {
         </div>
 
         <div className="p-3 border-b border-gray-200">
-          <ChatSelector
-            chatData={chatData}
-            onSelect={handleChatSelect}
-            selectedIndex={selectedChatIndex}
-          />
+          <div className="text-sm text-gray-600">
+            <span className="font-medium">{selectedConsultation.customerName}</span> 고객님의 상담
+          </div>
         </div>
 
         <div className="flex flex-col overflow-y-auto p-2 bg-gray-50">
@@ -186,7 +199,7 @@ const AIChatDemo = () => {
       </div>
 
       {/* 우측 상담 요약 영역 */}
-      <div className="w-1/2 bg-gray-50 border-l border-gray-200 flex flex-col h-[calc(100vh-50px)]">
+      <div className="w-1/4 bg-gray-50 border-l border-gray-200 flex flex-col h-[calc(100vh-50px)]">
         <div className="p-4 overflow-y-auto">
           <ChatSummary
             summary={summary}

@@ -14,13 +14,13 @@ const ChatList = ({ messages }: ChatListProps) => {
   ];
 
   return (
-    <div className="flex flex-col overflow-y-auto h-[calc(100vh-160px)] p-2 bg-gray-50">
+    <div className="flex flex-col overflow-y-auto h-[calc(100vh-200px)] p-2 bg-gray-50">
       <div className="flex-grow">
         {messages.map((message, index) => (
-          <ChatBubble 
-            key={index} 
+          <ChatBubble
+            key={index}
             message={message}
-            time={timestamps[index % timestamps.length]} 
+            time={timestamps[index % timestamps.length]}
           />
         ))}
       </div>
