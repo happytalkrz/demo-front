@@ -136,16 +136,6 @@ const AIChatDemo = () => {
     }
   };
 
-  // 마지막 요약의 첫 세 메시지 가져오기 (새 탭에서 보여줄 내용)
-  const getLastThreeMessages = () => {
-    if (lastSummaryMessages.length === 0) return "요약 내용이 없습니다.";
-
-    return lastSummaryMessages.slice(0, Math.min(3, lastSummaryMessages.length)).map((msg, idx) => (
-      <div key={idx} className="mb-1">
-        <span className="font-medium">{msg.role === 'customer' ? '고객' : '상담사'}:</span> {msg.message.length > 50 ? `${msg.message.substring(0, 50)}...` : msg.message}
-      </div>
-    ));
-  };
 
   return (
     <div className="flex h-screen bg-gray-100">

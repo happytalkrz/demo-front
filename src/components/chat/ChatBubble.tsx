@@ -15,7 +15,7 @@ const ChatBubble = ({ message, time = '오전 10:14' }: ChatBubbleProps) => {
 
   return (
     <div className={`flex ${isCustomer ? 'justify-end' : 'justify-start'} my-3 items-end`}>
-      {isCounselor && (
+      {!isCustomer && (
         <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 mr-3 flex-shrink-0 flex items-center justify-center shadow-md">
           <FiHeadphones className="text-white text-sm" />
         </div>
