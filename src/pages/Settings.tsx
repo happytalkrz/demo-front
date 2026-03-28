@@ -1,9 +1,61 @@
 import React, { useState } from 'react';
 import { FiSave, FiLock, FiUsers, FiMonitor, FiBell, FiUser } from 'react-icons/fi';
 import Input from '../components/form/Input';
+import Select from '../components/form/Select';
+import Toggle from '../components/form/Toggle';
+import { SelectOption } from '../types/common';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('profile');
+
+  // 일반 설정 state
+  const [systemName, setSystemName] = useState('관리 시스템');
+  const [language, setLanguage] = useState('ko');
+  const [timezone, setTimezone] = useState('Asia/Seoul');
+  const [theme, setTheme] = useState('light');
+
+  // 알림 설정 state
+  const [emailNotifications, setEmailNotifications] = useState({
+    security: true,
+    systemUpdate: true,
+    weeklyReport: true,
+  });
+  const [browserNotifications, setBrowserNotifications] = useState({
+    newMessage: true,
+    eventAlert: true,
+  });
+
+  // 보안 설정 state
+  const [sessionTimeout, setSessionTimeout] = useState('30');
+  const [passwordPolicy, setPasswordPolicy] = useState({
+    minLength: true,
+    uppercase: true,
+    specialChar: true,
+    periodicChange: true,
+  });
+  const [twoFactorAuth, setTwoFactorAuth] = useState(false);
+
+  // 비밀번호 변경 state
+  const [passwordChange, setPasswordChange] = useState({
+    current: '',
+    new: '',
+    confirm: '',
+  });
+
+  // Select options
+  const languageOptions: SelectOption[] = [
+    { value: 'ko', label: '한국어' },
+    { value: 'en', label: 'English' },
+    { value: 'ja', label: '日本語' },
+    { value: 'zh', label: '中文' },
+  ];
+
+  const timezoneOptions: SelectOption[] = [
+    { value: 'Asia/Seoul', label: '(GMT+09:00) 서울' },
+    { value: 'Asia/Tokyo', label: '(GMT+09:00) 도쿄' },
+    { value: 'America/New_York', label: '(GMT-05:00) 뉴욕' },
+    { value: 'Europe/London', label: '(GMT+00:00) 런던' },
+  ];
 
   return (
     <div>
@@ -112,67 +164,61 @@ const Settings = () => {
               <div>
                 <h2 className="text-lg font-semibold mb-6">일반 설정</h2>
                 <div className="space-y-6">
+                  <Input
+                    label="시스템 이름"
+                    type="text"
+                    value={systemName}
+                    onChange={(e) => setSystemName(e.target.value)}
+                  />
+
+                  <Select
+                    label="언어 설정"
+                    options={languageOptions}
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
+                  />
+
+                  <Select
+                    label="시간대"
+                    options={timezoneOptions}
+                    value={timezone}
+                    onChange={(e) => setTimezone(e.target.value)}
+                  />
+
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      시스템 이름
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      defaultValue="관리 시스템"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      언어 설정
-                    </label>
-                    <select className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                      <option value="ko">한국어</option>
-                      <option value="en">English</option>
-                      <option value="ja">日本語</option>
-                      <option value="zh">中文</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      시간대
-                    </label>
-                    <select className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                      <option value="Asia/Seoul">(GMT+09:00) 서울</option>
-                      <option value="Asia/Tokyo">(GMT+09:00) 도쿄</option>
-                      <option value="America/New_York">(GMT-05:00) 뉴욕</option>
-                      <option value="Europe/London">(GMT+00:00) 런던</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
                       기본 테마
                     </label>
                     <div className="flex gap-4">
                       <label className="inline-flex items-center">
-                        <input 
-                          type="radio" 
-                          name="theme" 
-                          value="light" 
-                          defaultChecked 
+                        <input
+                          type="radio"
+                          name="theme"
+                          value="light"
+                          checked={theme === 'light'}
+                          onChange={(e) => setTheme(e.target.value)}
                           className="text-blue-600 focus:ring-blue-500"
                         />
                         <span className="ml-2">라이트 모드</span>
                       </label>
                       <label className="inline-flex items-center">
-                        <input 
-                          type="radio" 
-                          name="theme" 
+                        <input
+                          type="radio"
+                          name="theme"
                           value="dark"
+                          checked={theme === 'dark'}
+                          onChange={(e) => setTheme(e.target.value)}
                           className="text-blue-600 focus:ring-blue-500"
                         />
                         <span className="ml-2">다크 모드</span>
                       </label>
                       <label className="inline-flex items-center">
-                        <input 
-                          type="radio" 
-                          name="theme" 
+                        <input
+                          type="radio"
+                          name="theme"
                           value="system"
+                          checked={theme === 'system'}
+                          onChange={(e) => setTheme(e.target.value)}
                           className="text-blue-600 focus:ring-blue-500"
                         />
                         <span className="ml-2">시스템 기본값</span>
@@ -187,68 +233,90 @@ const Settings = () => {
               <div>
                 <h2 className="text-lg font-semibold mb-6">보안 설정</h2>
                 <div className="space-y-6">
+                  <Input
+                    label="세션 타임아웃 (분)"
+                    type="number"
+                    value={sessionTimeout}
+                    onChange={(e) => setSessionTimeout(e.target.value)}
+                    min="5"
+                  />
+
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      세션 타임아웃 (분)
-                    </label>
-                    <input
-                      type="number"
-                      className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      defaultValue="30"
-                      min="5"
-                    />
+                    <h3 className="text-base font-medium text-gray-900 mb-4">비밀번호 변경</h3>
+                    <div className="space-y-4">
+                      <Input
+                        label="현재 비밀번호"
+                        type="password"
+                        value={passwordChange.current}
+                        onChange={(e) => setPasswordChange(prev => ({ ...prev, current: e.target.value }))}
+                        placeholder="현재 비밀번호를 입력하세요"
+                      />
+                      <Input
+                        label="새 비밀번호"
+                        type="password"
+                        value={passwordChange.new}
+                        onChange={(e) => setPasswordChange(prev => ({ ...prev, new: e.target.value }))}
+                        placeholder="새 비밀번호를 입력하세요"
+                      />
+                      <Input
+                        label="비밀번호 확인"
+                        type="password"
+                        value={passwordChange.confirm}
+                        onChange={(e) => setPasswordChange(prev => ({ ...prev, confirm: e.target.value }))}
+                        placeholder="새 비밀번호를 다시 입력하세요"
+                      />
+                    </div>
                   </div>
+
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
                       비밀번호 정책
                     </label>
                     <div className="space-y-2">
                       <label className="flex items-center">
-                        <input 
+                        <input
                           type="checkbox"
-                          defaultChecked
+                          checked={passwordPolicy.minLength}
+                          onChange={(e) => setPasswordPolicy(prev => ({ ...prev, minLength: e.target.checked }))}
                           className="text-blue-600 focus:ring-blue-500 rounded"
                         />
                         <span className="ml-2 text-sm">최소 8자리 이상</span>
                       </label>
                       <label className="flex items-center">
-                        <input 
+                        <input
                           type="checkbox"
-                          defaultChecked
+                          checked={passwordPolicy.uppercase}
+                          onChange={(e) => setPasswordPolicy(prev => ({ ...prev, uppercase: e.target.checked }))}
                           className="text-blue-600 focus:ring-blue-500 rounded"
                         />
                         <span className="ml-2 text-sm">대문자 포함</span>
                       </label>
                       <label className="flex items-center">
-                        <input 
+                        <input
                           type="checkbox"
-                          defaultChecked
+                          checked={passwordPolicy.specialChar}
+                          onChange={(e) => setPasswordPolicy(prev => ({ ...prev, specialChar: e.target.checked }))}
                           className="text-blue-600 focus:ring-blue-500 rounded"
                         />
                         <span className="ml-2 text-sm">특수문자 포함</span>
                       </label>
                       <label className="flex items-center">
-                        <input 
+                        <input
                           type="checkbox"
-                          defaultChecked
+                          checked={passwordPolicy.periodicChange}
+                          onChange={(e) => setPasswordPolicy(prev => ({ ...prev, periodicChange: e.target.checked }))}
                           className="text-blue-600 focus:ring-blue-500 rounded"
                         />
                         <span className="ml-2 text-sm">90일마다 변경 요구</span>
                       </label>
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      2단계 인증
-                    </label>
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      />
-                      <span className="ml-2">2단계 인증 활성화</span>
-                    </div>
-                  </div>
+
+                  <Toggle
+                    label="2단계 인증 활성화"
+                    checked={twoFactorAuth}
+                    onChange={(e) => setTwoFactorAuth(e.target.checked)}
+                  />
                 </div>
               </div>
             )}
@@ -258,57 +326,38 @@ const Settings = () => {
                 <h2 className="text-lg font-semibold mb-6">알림 설정</h2>
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      이메일 알림
-                    </label>
-                    <div className="space-y-2">
-                      <label className="flex items-center">
-                        <input 
-                          type="checkbox"
-                          defaultChecked
-                          className="text-blue-600 focus:ring-blue-500 rounded"
-                        />
-                        <span className="ml-2 text-sm">보안 알림</span>
-                      </label>
-                      <label className="flex items-center">
-                        <input 
-                          type="checkbox"
-                          defaultChecked
-                          className="text-blue-600 focus:ring-blue-500 rounded"
-                        />
-                        <span className="ml-2 text-sm">시스템 업데이트</span>
-                      </label>
-                      <label className="flex items-center">
-                        <input 
-                          type="checkbox"
-                          defaultChecked
-                          className="text-blue-600 focus:ring-blue-500 rounded"
-                        />
-                        <span className="ml-2 text-sm">주간 리포트</span>
-                      </label>
+                    <h3 className="text-base font-medium text-gray-700 mb-4">이메일 알림</h3>
+                    <div className="space-y-4">
+                      <Toggle
+                        label="보안 알림"
+                        checked={emailNotifications.security}
+                        onChange={(e) => setEmailNotifications(prev => ({ ...prev, security: e.target.checked }))}
+                      />
+                      <Toggle
+                        label="시스템 업데이트"
+                        checked={emailNotifications.systemUpdate}
+                        onChange={(e) => setEmailNotifications(prev => ({ ...prev, systemUpdate: e.target.checked }))}
+                      />
+                      <Toggle
+                        label="주간 리포트"
+                        checked={emailNotifications.weeklyReport}
+                        onChange={(e) => setEmailNotifications(prev => ({ ...prev, weeklyReport: e.target.checked }))}
+                      />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      브라우저 알림
-                    </label>
-                    <div className="space-y-2">
-                      <label className="flex items-center">
-                        <input 
-                          type="checkbox"
-                          defaultChecked
-                          className="text-blue-600 focus:ring-blue-500 rounded"
-                        />
-                        <span className="ml-2 text-sm">새 메시지</span>
-                      </label>
-                      <label className="flex items-center">
-                        <input 
-                          type="checkbox"
-                          defaultChecked
-                          className="text-blue-600 focus:ring-blue-500 rounded"
-                        />
-                        <span className="ml-2 text-sm">이벤트 알림</span>
-                      </label>
+                    <h3 className="text-base font-medium text-gray-700 mb-4">브라우저 알림</h3>
+                    <div className="space-y-4">
+                      <Toggle
+                        label="새 메시지"
+                        checked={browserNotifications.newMessage}
+                        onChange={(e) => setBrowserNotifications(prev => ({ ...prev, newMessage: e.target.checked }))}
+                      />
+                      <Toggle
+                        label="이벤트 알림"
+                        checked={browserNotifications.eventAlert}
+                        onChange={(e) => setBrowserNotifications(prev => ({ ...prev, eventAlert: e.target.checked }))}
+                      />
                     </div>
                   </div>
                 </div>
