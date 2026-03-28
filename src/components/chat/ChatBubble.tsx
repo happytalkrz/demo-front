@@ -1,3 +1,4 @@
+import React from 'react';
 import { ChatMessage } from '../../types/chat';
 import { FiUser, FiHeadphones, FiMessageCircle } from 'react-icons/fi';
 
@@ -6,45 +7,44 @@ interface ChatBubbleProps {
   time?: string;
 }
 
+interface RoleStyle {
+  bubbleClass: string;
+  avatarClass: string;
+  icon: React.ReactElement;
+  label: string;
+}
+
+const ROLE_STYLES: Record<string, RoleStyle> = {
+  customer: {
+    bubbleClass: 'bg-blue-500 text-white',
+    avatarClass: 'bg-blue-100 text-blue-600',
+    icon: <FiUser size={14} />,
+    label: '고객'
+  },
+  counselor: {
+    bubbleClass: 'bg-gray-100 text-gray-800',
+    avatarClass: 'bg-green-100 text-green-600',
+    icon: <FiHeadphones size={14} />,
+    label: '상담사'
+  },
+  chatbot: {
+    bubbleClass: 'bg-purple-100 text-purple-800',
+    avatarClass: 'bg-purple-100 text-purple-600',
+    icon: <FiMessageCircle size={14} />,
+    label: '챗봇'
+  }
+};
+
+const DEFAULT_ROLE_STYLE: RoleStyle = {
+  bubbleClass: 'bg-gray-100 text-gray-800',
+  avatarClass: 'bg-gray-100 text-gray-600',
+  icon: <FiUser size={14} />,
+  label: '사용자'
+};
+
 const ChatBubble = ({ message, time = '오전 10:14' }: ChatBubbleProps) => {
   const isCustomer = message.role === 'customer';
-  const isChatbot = message.role === 'chatbot';
-
-  // 역할별 스타일 설정
-  const getRoleStyles = () => {
-    switch (message.role) {
-      case 'customer':
-        return {
-          bubbleClass: 'bg-blue-500 text-white',
-          avatarClass: 'bg-blue-100 text-blue-600',
-          icon: <FiUser size={14} />,
-          label: '고객'
-        };
-      case 'counselor':
-        return {
-          bubbleClass: 'bg-gray-100 text-gray-800',
-          avatarClass: 'bg-green-100 text-green-600',
-          icon: <FiHeadphones size={14} />,
-          label: '상담사'
-        };
-      case 'chatbot':
-        return {
-          bubbleClass: 'bg-purple-100 text-purple-800',
-          avatarClass: 'bg-purple-100 text-purple-600',
-          icon: <FiMessageCircle size={14} />,
-          label: '챗봇'
-        };
-      default:
-        return {
-          bubbleClass: 'bg-gray-100 text-gray-800',
-          avatarClass: 'bg-gray-100 text-gray-600',
-          icon: <FiUser size={14} />,
-          label: '사용자'
-        };
-    }
-  };
-
-  const roleStyles = getRoleStyles();
+  const roleStyles = ROLE_STYLES[message.role] || DEFAULT_ROLE_STYLE;
 
   return (
     <div className={`flex ${isCustomer ? 'justify-end' : 'justify-start'} mb-4 items-end`}>

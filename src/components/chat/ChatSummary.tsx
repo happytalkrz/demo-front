@@ -26,7 +26,6 @@ const ChatSummary = ({ messages, summary }: ChatSummaryProps) => {
 
   // API 요약 관련 상태
   const [showApiSummary, setShowApiSummary] = useState(true);
-  const [summaryCount, setSummaryCount] = useState(0);
   const [apiSummary, setApiSummary] = useState<SummaryResponse['data'] | null>(null);
   const [summaryTimestamp, setSummaryTimestamp] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -59,18 +58,13 @@ const ChatSummary = ({ messages, summary }: ChatSummaryProps) => {
 
   // 요약 생성 처리
   const handleSummarize = async () => {
-    // 로딩 상태 활성화
     setIsLoading(true);
-    const newCount = summaryCount + 1;
-    setSummaryCount(newCount);
 
     // 현재 채팅 메시지를 요청한 JSON 형식으로 준비
-    const formattedMessages = messages.map(msg => {
-      return {
-        role: msg.role,
-        message: msg.message
-      };
-    });
+    const formattedMessages = messages.map(msg => ({
+      role: msg.role,
+      message: msg.message
+    }));
 
     // 샘플 챗봇 메시지 추가 (요청된 형식에 맞춰)
     const chatbotMessages: ChatMessage[] = [
