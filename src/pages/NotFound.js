@@ -1,0 +1,7 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { Link } from 'react-router-dom';
+import { FiHome } from 'react-icons/fi';
+const NotFound = () => {
+    return (_jsx("div", { className: "min-h-screen bg-gray-50 flex flex-col justify-center items-center px-6", children: _jsxs("div", { className: "text-center", children: [_jsx("h1", { className: "text-6xl font-bold text-gray-900 mb-4", children: "404" }), _jsx("h2", { className: "text-2xl font-semibold text-gray-700 mb-4", children: "\uD398\uC774\uC9C0\uB97C \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4" }), _jsx("p", { className: "text-gray-500 mb-8 max-w-md", children: "\uC694\uCCAD\uD558\uC2E0 \uD398\uC774\uC9C0\uAC00 \uC874\uC7AC\uD558\uC9C0 \uC54A\uAC70\uB098 \uC774\uB3D9\uB418\uC5C8\uC744 \uC218 \uC788\uC2B5\uB2C8\uB2E4. URL\uC744 \uB2E4\uC2DC \uD655\uC778\uD574 \uC8FC\uC138\uC694." }), _jsxs("div", { className: "space-y-4", children: [_jsxs(Link, { to: "/dashboard", className: "inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors", children: [_jsx(FiHome, { className: "w-4 h-4 mr-2" }), "\uB300\uC2DC\uBCF4\uB4DC\uB85C \uB3CC\uC544\uAC00\uAE30"] }), _jsx("div", { className: "text-center", children: _jsx("button", { onClick: () => window.history.back(), className: "text-blue-600 hover:text-blue-700 font-medium", children: "\uC774\uC804 \uD398\uC774\uC9C0\uB85C \uB3CC\uC544\uAC00\uAE30" }) })] })] }) }));
+};
+export default NotFound;
