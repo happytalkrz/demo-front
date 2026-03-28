@@ -3,8 +3,8 @@ import ChatList from '../components/chat/ChatList';
 import ChatInput from '../components/chat/ChatInput';
 import ChatSummary from '../components/chat/ChatSummary';
 import ChatSelector from '../components/chat/ChatSelector';
-import { chatData } from '../data/chatData';
-import { mockSummaries } from '../data/summaryData';
+import { consultations } from '../data/chatData';
+import { summaries } from '../data/summaryData';
 import { ChatMessage, ChatSummary as ChatSummaryType } from '../types/chat';
 
 // 응답 데이터 타입 정의
@@ -22,7 +22,7 @@ interface SummaryResponse {
 const AIChatDemo = () => {
   // 채팅 관련 상태
   const [selectedChatIndex, setSelectedChatIndex] = useState(0);
-  const [messages, setMessages] = useState<ChatMessage[]>(chatData[0].dialogue);
+  const [messages, setMessages] = useState<ChatMessage[]>(consultations[0].dialogue);
   const [role, setRole] = useState<'customer' | 'counselor'>('customer');
   
   // 요약 관련 상태
@@ -42,7 +42,7 @@ const AIChatDemo = () => {
   // 채팅 데이터 변경 처리
   const handleChatSelect = (index: number) => {
     setSelectedChatIndex(index);
-    setMessages(chatData[index].dialogue);
+    setMessages(consultations[index].dialogue);
   };
   
   // 메시지 전송 처리
@@ -193,7 +193,10 @@ const AIChatDemo = () => {
 
         <div className="p-3 border-b border-gray-200">
           <ChatSelector
-            chatData={chatData}
+            chatData={consultations.map(consultation => ({
+              title: consultation.title,
+              dialogue: consultation.dialogue
+            }))}
             onSelect={handleChatSelect}
             selectedIndex={selectedChatIndex}
           />
