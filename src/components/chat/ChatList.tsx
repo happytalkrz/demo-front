@@ -14,23 +14,26 @@ const ChatList = ({ messages }: ChatListProps) => {
   ];
 
   return (
-    <div className="flex flex-col overflow-y-auto h-[calc(100vh-160px)] p-2 bg-gray-50">
-      <div className="flex-grow">
+    <div className="flex flex-col overflow-y-auto h-[calc(100vh-160px)] px-4 py-6 bg-white">
+      <div className="flex-grow space-y-2">
         {messages.map((message, index) => (
-          <ChatBubble 
-            key={index} 
+          <ChatBubble
+            key={index}
             message={message}
-            time={timestamps[index % timestamps.length]} 
+            time={timestamps[index % timestamps.length]}
           />
         ))}
       </div>
       {messages.length === 0 && (
         <div className="flex-grow flex items-center justify-center">
-          <p className="text-gray-400 text-sm">대화 내용이 없습니다</p>
+          <div className="text-center">
+            <p className="text-gray-400 text-sm mb-2">대화 내용이 없습니다</p>
+            <p className="text-gray-300 text-xs">상담을 시작하려면 메시지를 입력해주세요</p>
+          </div>
         </div>
       )}
-      <div className="p-2 text-center text-xs text-gray-400">
-        내용을 입력 하세요.
+      <div className="mt-4 pt-4 border-t border-gray-100 text-center">
+        <p className="text-xs text-gray-400">메시지를 입력해주세요</p>
       </div>
     </div>
   );
