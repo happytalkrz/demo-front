@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { ComponentType } from 'react';
 import { FiSave, FiLock, FiUsers, FiMonitor, FiBell, FiUser } from 'react-icons/fi';
 import Input from '../components/form/Input';
 import Select from '../components/form/Select';
@@ -8,7 +9,7 @@ import { useToast } from '../hooks/useToast';
 
 interface TabConfig {
   id: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
   label: string;
 }
 
@@ -17,12 +18,29 @@ interface RolePermission {
   permissions: { label: string; checked: boolean }[];
 }
 
-// Theme options
 const THEME_OPTIONS = [
   { value: 'light', label: '라이트 모드' },
   { value: 'dark', label: '다크 모드' },
   { value: 'system', label: '시스템 기본값' },
 ] as const;
+
+const PASSWORD_POLICIES = {
+  minLength: '최소 8자리 이상',
+  uppercase: '대문자 포함',
+  specialChar: '특수문자 포함',
+  periodicChange: '90일마다 변경 요구',
+} as const;
+
+const EMAIL_NOTIFICATIONS = {
+  security: '보안 알림',
+  systemUpdate: '시스템 업데이트',
+  weeklyReport: '주간 리포트',
+} as const;
+
+const BROWSER_NOTIFICATIONS = {
+  newMessage: '새 메시지',
+  eventAlert: '이벤트 알림',
+} as const;
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('profile');
@@ -295,12 +313,7 @@ const Settings = () => {
                       비밀번호 정책
                     </label>
                     <div className="space-y-2">
-                      {Object.entries({
-                        minLength: '최소 8자리 이상',
-                        uppercase: '대문자 포함',
-                        specialChar: '특수문자 포함',
-                        periodicChange: '90일마다 변경 요구',
-                      }).map(([key, label]) => (
+                      {Object.entries(PASSWORD_POLICIES).map(([key, label]) => (
                         <label key={key} className="flex items-center">
                           <input
                             type="checkbox"
@@ -333,11 +346,7 @@ const Settings = () => {
                   <div>
                     <h3 className="text-base font-medium text-gray-700 mb-4">이메일 알림</h3>
                     <div className="space-y-4">
-                      {Object.entries({
-                        security: '보안 알림',
-                        systemUpdate: '시스템 업데이트',
-                        weeklyReport: '주간 리포트',
-                      }).map(([key, label]) => (
+                      {Object.entries(EMAIL_NOTIFICATIONS).map(([key, label]) => (
                         <Toggle
                           key={key}
                           label={label}
@@ -353,10 +362,7 @@ const Settings = () => {
                   <div>
                     <h3 className="text-base font-medium text-gray-700 mb-4">브라우저 알림</h3>
                     <div className="space-y-4">
-                      {Object.entries({
-                        newMessage: '새 메시지',
-                        eventAlert: '이벤트 알림',
-                      }).map(([key, label]) => (
+                      {Object.entries(BROWSER_NOTIFICATIONS).map(([key, label]) => (
                         <Toggle
                           key={key}
                           label={label}
