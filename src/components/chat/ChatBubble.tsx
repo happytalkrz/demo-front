@@ -1,4 +1,3 @@
-import React from 'react';
 import { ChatMessage } from '../../types/chat';
 import { FiUser, FiHeadphones, FiMessageCircle } from 'react-icons/fi';
 

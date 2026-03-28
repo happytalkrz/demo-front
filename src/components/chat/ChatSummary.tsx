@@ -19,13 +19,15 @@ interface ChatSummaryProps {
 }
 
 const ChatSummary = ({ messages, summary }: ChatSummaryProps) => {
-  // 기본 요약 섹션 상태
-  const [showSummary1, setShowSummary1] = useState(true);
-  const [showSummary2, setShowSummary2] = useState(true);
-  const [showSummary3, setShowSummary3] = useState(true);
+  // 섹션 전개 상태
+  const [expandedSections, setExpandedSections] = useState({
+    summary1: true,
+    summary2: true,
+    summary3: true,
+    apiSummary: true,
+  });
 
   // API 요약 관련 상태
-  const [showApiSummary, setShowApiSummary] = useState(true);
   const [apiSummary, setApiSummary] = useState<SummaryResponse['data'] | null>(null);
   const [summaryTimestamp, setSummaryTimestamp] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -116,11 +118,11 @@ const ChatSummary = ({ messages, summary }: ChatSummaryProps) => {
     }
   };
 
-  const toggleSummary = (summaryId: number) => {
-    if (summaryId === 1) setShowSummary1(!showSummary1);
-    else if (summaryId === 2) setShowSummary2(!showSummary2);
-    else if (summaryId === 3) setShowSummary3(!showSummary3);
-    else if (summaryId === 4) setShowApiSummary(!showApiSummary);
+  const toggleSummary = (sectionKey: keyof typeof expandedSections) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionKey]: !prev[sectionKey],
+    }));
   };
 
   return (
@@ -143,11 +145,11 @@ const ChatSummary = ({ messages, summary }: ChatSummaryProps) => {
         </div>
 
         <div className="border-t border-gray-200 pt-2 mt-4 mb-4">
-          <div className="flex justify-between items-center mb-1 cursor-pointer" onClick={() => toggleSummary(1)}>
+          <div className="flex justify-between items-center mb-1 cursor-pointer" onClick={() => toggleSummary('summary1')}>
             <div className="text-sm font-medium">상담 세부 요약</div>
             <div className="text-xs text-gray-500">2023.05.07 11:03 기준</div>
           </div>
-          {showSummary1 && (
+          {expandedSections.summary1 && (
             <div className="text-xs text-gray-600 pl-2 border-l-2 border-gray-200 ml-1 py-1">
               {summary ? (
                 <>
@@ -167,11 +169,11 @@ const ChatSummary = ({ messages, summary }: ChatSummaryProps) => {
         </div>
 
         <div className="border-t border-gray-200 pt-2 mb-4">
-          <div className="flex justify-between items-center mb-1 cursor-pointer" onClick={() => toggleSummary(2)}>
+          <div className="flex justify-between items-center mb-1 cursor-pointer" onClick={() => toggleSummary('summary2')}>
             <div className="text-sm font-medium">상담 핵심 1</div>
             <div className="text-xs text-gray-500">2023.05.07 11:03 기준</div>
           </div>
-          {showSummary2 && (
+          {expandedSections.summary2 && (
             <div className="text-xs text-gray-600 pl-2 border-l-2 border-gray-200 ml-1 py-1">
               고객: 내용 대화 기록에 없는 곳이<br/>
               상담사: 제품 정보 안내시 지식 인가<br/>
@@ -181,11 +183,11 @@ const ChatSummary = ({ messages, summary }: ChatSummaryProps) => {
         </div>
 
         <div className="border-t border-gray-200 pt-2 mb-4">
-          <div className="flex justify-between items-center mb-1 cursor-pointer" onClick={() => toggleSummary(3)}>
+          <div className="flex justify-between items-center mb-1 cursor-pointer" onClick={() => toggleSummary('summary3')}>
             <div className="text-sm font-medium">상담 핵심 2</div>
             <div className="text-xs text-gray-500">2023.05.07 11:03 기준</div>
           </div>
-          {showSummary3 && (
+          {expandedSections.summary3 && (
             <div className="text-xs text-gray-600 pl-2 border-l-2 border-gray-200 ml-1 py-1">
               고객: 내용 대화 기록에 없는 곳이<br/>
               상담사: 제품 정보 안내시 지식 인가<br/>
@@ -197,7 +199,7 @@ const ChatSummary = ({ messages, summary }: ChatSummaryProps) => {
         {/* API 요약 섹션 - 로딩 중이거나 응답이 있을 때 표시 */}
         {(isLoading || apiSummary) && (
           <div className="border-t border-gray-200 pt-2 mb-4">
-            <div className="flex justify-between items-center mb-1 cursor-pointer" onClick={() => toggleSummary(4)}>
+            <div className="flex justify-between items-center mb-1 cursor-pointer" onClick={() => toggleSummary('apiSummary')}>
               <div className="text-sm font-medium flex items-center">
                 <span>상담핵심</span>
                 {!isLoading && apiSummary && <span className="ml-2 text-xl">{getEmotionIcon(apiSummary.emotion)}</span>}
@@ -206,7 +208,7 @@ const ChatSummary = ({ messages, summary }: ChatSummaryProps) => {
                 {isLoading ? '생성 중...' : summaryTimestamp}
               </div>
             </div>
-            {showApiSummary && (
+            {expandedSections.apiSummary && (
               <div className="text-xs text-gray-600 pl-2 border-l-2 border-gray-200 ml-1 py-1">
                 {isLoading ? (
                   <div className="flex items-center justify-center py-4">
