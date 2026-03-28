@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { FiEdit2, FiPlus, FiTrash2 } from 'react-icons/fi';
+import { FiEdit2, FiEye, FiPlus, FiTrash2 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import DataTable from '../components/common/DataTable';
 import Modal from '../components/common/Modal';
@@ -28,6 +28,10 @@ const PromptManagement = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const [deleteTargetName, setDeleteTargetName] = useState<string>('');
+
+  // 미리보기 Modal 상태
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [previewPrompt, setPreviewPrompt] = useState<Prompt | null>(null);
 
   // 폼 상태
   const [formData, setFormData] = useState<CreatePromptData>({
@@ -93,6 +97,17 @@ const PromptManagement = () => {
       setPrompts(prev => prev.filter(prompt => prompt.id !== deleteTargetId));
     }
     closeDeleteDialog();
+  };
+
+  // 미리보기 Modal 관리 함수들
+  const openPreviewModal = (prompt: Prompt) => {
+    setPreviewPrompt(prompt);
+    setIsPreviewModalOpen(true);
+  };
+
+  const closePreviewModal = () => {
+    setIsPreviewModalOpen(false);
+    setPreviewPrompt(null);
   };
 
   // 폼 데이터 변경 핸들러
@@ -237,6 +252,13 @@ const PromptManagement = () => {
             {value}
           </span>
           <div className="flex items-center space-x-2">
+            <button
+              onClick={() => openPreviewModal(row)}
+              className="text-gray-500 hover:text-green-600"
+              title="미리보기"
+            >
+              <FiEye size={18} />
+            </button>
             <button
               onClick={() => handleEditPrompt(row)}
               className="text-gray-500 hover:text-blue-600"
@@ -389,6 +411,73 @@ const PromptManagement = () => {
         cancelText="취소"
         variant="danger"
       />
+
+      {/* 미리보기 Modal */}
+      <Modal
+        isOpen={isPreviewModalOpen}
+        onClose={closePreviewModal}
+        title="프롬프트 미리보기"
+        size="lg"
+      >
+        {previewPrompt && (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                프롬프트 이름
+              </label>
+              <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-gray-900">
+                {previewPrompt.name}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                프롬프트 내용
+              </label>
+              <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-gray-900 whitespace-pre-wrap min-h-[150px] max-h-[300px] overflow-y-auto">
+                {previewPrompt.content}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                상태
+              </label>
+              <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-gray-900">
+                {previewPrompt.status}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  최근 수정일
+                </label>
+                <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-gray-900">
+                  {previewPrompt.lastModified}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  수정자
+                </label>
+                <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-gray-900">
+                  {previewPrompt.modifiedBy}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-4">
+              <button
+                onClick={closePreviewModal}
+                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };
