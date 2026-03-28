@@ -2,7 +2,7 @@ import { useState } from 'react';
 import ChatList from '../components/chat/ChatList';
 import ChatInput from '../components/chat/ChatInput';
 import ChatSummary from '../components/chat/ChatSummary';
-import ChatSelector from '../components/chat/ChatSelector';
+import ConsultationList from '../components/chat/ConsultationList';
 import { consultations } from '../data/chatData';
 import { summaries } from '../data/summaryData';
 import { ChatMessage, ChatSummary as ChatSummaryType } from '../types/chat';
@@ -168,8 +168,17 @@ const AIChatDemo = () => {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* 채팅 영역 */}
-      <div className="w-1/2 flex flex-col bg-white h-[calc(100vh-50px)]">
+      {/* 좌측: 상담 목록 */}
+      <div className="w-1/4 h-[calc(100vh-50px)]">
+        <ConsultationList
+          consultations={consultations}
+          onSelect={handleChatSelect}
+          selectedIndex={selectedChatIndex}
+        />
+      </div>
+
+      {/* 중앙: 채팅 뷰 */}
+      <div className="w-2/4 flex flex-col bg-white h-[calc(100vh-50px)]">
         <div className="p-3 border-b border-gray-200 flex items-center">
           <div className="flex items-center">
             <span className="text-sm">Tag</span>
@@ -191,18 +200,7 @@ const AIChatDemo = () => {
           </div>
         </div>
 
-        <div className="p-3 border-b border-gray-200">
-          <ChatSelector
-            chatData={consultations.map(consultation => ({
-              title: consultation.title,
-              dialogue: consultation.dialogue
-            }))}
-            onSelect={handleChatSelect}
-            selectedIndex={selectedChatIndex}
-          />
-        </div>
-
-        <div className="flex flex-col overflow-y-auto p-2 bg-gray-50">
+        <div className="flex flex-col flex-1 overflow-y-auto p-2 bg-gray-50">
           <ChatList messages={messages} />
         </div>
 
@@ -213,8 +211,8 @@ const AIChatDemo = () => {
         />
       </div>
 
-      {/* 우측 상담 요약 영역 */}
-      <div className="w-1/2 bg-white border-l border-gray-200 flex flex-col h-[calc(100vh-50px)]">
+      {/* 우측: 요약 패널 */}
+      <div className="w-1/4 bg-white border-l border-gray-200 flex flex-col h-[calc(100vh-50px)]">
         <div className="p-3 border-b border-gray-200 flex items-center">
           <div className="flex items-center justify-center w-5 h-5 rounded border border-gray-300 mr-2">
             <span className="text-xs">✕</span>
