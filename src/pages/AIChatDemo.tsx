@@ -33,11 +33,6 @@ const AIChatDemo = () => {
   const [summaryTimestamp, setSummaryTimestamp] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   
-  // 요약 영역 표시 상태
-  const [showSummary1, setShowSummary1] = useState(true);
-  const [showSummary2, setShowSummary2] = useState(true);
-  const [showSummary3, setShowSummary3] = useState(true);
-  const [showSummary4, setShowSummary4] = useState(true);
   
   // 채팅 데이터 변경 처리
   const handleChatSelect = (index: number) => {
@@ -66,19 +61,6 @@ const AIChatDemo = () => {
     return `${year}.${month}.${day} ${hours}:${minutes} 기준`;
   };
 
-  // 감정에 맞는 이모티콘 표시
-  const getEmotionIcon = (emotion: string): string => {
-    switch (emotion.toLowerCase()) {
-      case '긍정':
-        return '😊';
-      case '부정':
-        return '😞';
-      case '중립':
-        return '😐';
-      default:
-        return '❓';
-    }
-  };
 
   // 요약 생성 처리
   const handleSummarize = async () => {
@@ -148,17 +130,10 @@ const AIChatDemo = () => {
     }
   };
 
-  const toggleSummary = (summaryId: number) => {
-    if (summaryId === 1) setShowSummary1(!showSummary1);
-    else if (summaryId === 2) setShowSummary2(!showSummary2);
-    else if (summaryId === 3) setShowSummary3(!showSummary3);
-    else if (summaryId === 4) setShowSummary4(!showSummary4);
-  };
-
   // 마지막 요약의 첫 세 메시지 가져오기 (새 탭에서 보여줄 내용)
   const getLastThreeMessages = () => {
     if (lastSummaryMessages.length === 0) return "요약 내용이 없습니다.";
-    
+
     return lastSummaryMessages.slice(0, Math.min(3, lastSummaryMessages.length)).map((msg, idx) => (
       <div key={idx} className="mb-1">
         <span className="font-medium">{msg.role === 'customer' ? '고객' : '상담사'}:</span> {msg.message.length > 50 ? `${msg.message.substring(0, 50)}...` : msg.message}
@@ -211,109 +186,15 @@ const AIChatDemo = () => {
       </div>
 
       {/* 우측 상담 요약 영역 */}
-      <div className="w-1/2 bg-white border-l border-gray-200 flex flex-col h-[calc(100vh-50px)]">
-        <div className="p-3 border-b border-gray-200 flex items-center">
-          <div className="flex items-center justify-center w-5 h-5 rounded border border-gray-300 mr-2">
-            <span className="text-xs">✕</span>
-          </div>
-          <span className="font-medium">h.AI Assistant 상담 요약</span>
-        </div>
-
+      <div className="w-1/2 bg-gray-50 border-l border-gray-200 flex flex-col h-[calc(100vh-50px)]">
         <div className="p-4 overflow-y-auto">
-          <div className="text-xs text-gray-500 mb-2">AI가 처리하여 상담 내용을 자동해 생성합니다.</div>
-          
-          <div className="mb-4">
-            <div className="text-sm font-medium">상담 개요</div>
-            <div className="text-xs text-gray-600 mt-1">
-              AI가 등록 개요를 GOT 기반으로 정리했습니다. 원격 작대에 실딥 표현과 일치할 
-              수도있으나 등 참고시 활용해 주세요.
-            </div>
-          </div>
-
-          <div className="border-t border-gray-200 pt-2 mt-4 mb-4">
-            <div className="flex justify-between items-center mb-1 cursor-pointer" onClick={() => toggleSummary(1)}>
-              <div className="text-sm font-medium">상담 세부 요약</div>
-              <div className="text-xs text-gray-500">2023.05.07 11:03 기준</div>
-            </div>
-            {showSummary1 && (
-              <div className="text-xs text-gray-600 pl-2 border-l-2 border-gray-200 ml-1 py-1">
-                고객: 내용 대화 기록에 없는 곳이<br/>
-                상담사: 제품 정보 안내시 지식 인가<br/>
-                고객 기타: 보험
-              </div>
-            )}
-          </div>
-
-          <div className="border-t border-gray-200 pt-2 mb-4">
-            <div className="flex justify-between items-center mb-1 cursor-pointer" onClick={() => toggleSummary(2)}>
-              <div className="text-sm font-medium">상담 핵심 1</div>
-              <div className="text-xs text-gray-500">2023.05.07 11:03 기준</div>
-            </div>
-            {showSummary2 && (
-              <div className="text-xs text-gray-600 pl-2 border-l-2 border-gray-200 ml-1 py-1">
-                고객: 내용 대화 기록에 없는 곳이<br/>
-                상담사: 제품 정보 안내시 지식 인가<br/>
-                고객 기타: 보험
-              </div>
-            )}
-          </div>
-
-          <div className="border-t border-gray-200 pt-2 mb-4">
-            <div className="flex justify-between items-center mb-1 cursor-pointer" onClick={() => toggleSummary(3)}>
-              <div className="text-sm font-medium">상담 핵심 2</div>
-              <div className="text-xs text-gray-500">2023.05.07 11:03 기준</div>
-            </div>
-            {showSummary3 && (
-              <div className="text-xs text-gray-600 pl-2 border-l-2 border-gray-200 ml-1 py-1">
-                고객: 내용 대화 기록에 없는 곳이<br/>
-                상담사: 제품 정보 안내시 지식 인가<br/>
-                고객 기타: 보험
-              </div>
-            )}
-          </div>
-
-          {/* 로딩 중이거나 응답이 있을 때 표시 */}
-          {(isLoading || apiSummary) && (
-            <div className="border-t border-gray-200 pt-2 mb-4">
-              <div className="flex justify-between items-center mb-1 cursor-pointer" onClick={() => toggleSummary(4)}>
-                <div className="text-sm font-medium flex items-center">
-                  <span>상담핵심</span>
-                  {!isLoading && apiSummary && <span className="ml-2 text-xl">{getEmotionIcon(apiSummary.emotion)}</span>}
-                </div>
-                <div className="text-xs text-gray-500">
-                  {isLoading ? '생성 중...' : summaryTimestamp}
-                </div>
-              </div>
-              {showSummary4 && (
-                <div className="text-xs text-gray-600 pl-2 border-l-2 border-gray-200 ml-1 py-1">
-                  {isLoading ? (
-                    <div className="flex items-center justify-center py-4">
-                      <div className="animate-pulse flex flex-col items-center">
-                        <div className="h-4 w-3/4 bg-gray-200 rounded mb-2"></div>
-                        <div className="h-4 w-full bg-gray-200 rounded mb-2"></div>
-                        <div className="h-4 w-5/6 bg-gray-200 rounded"></div>
-                        <div className="mt-3 text-sm text-gray-500">상담 요약 중...</div>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="mb-1"><strong>제목:</strong> {apiSummary?.title}</div>
-                      <div className="mb-1"><strong>요약내용:</strong> {apiSummary?.summary}</div>
-                      <div><strong>감정:</strong> {apiSummary?.emotion}</div>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          <button
-            onClick={handleSummarize}
-            disabled={isLoading}
-            className={`w-full py-3 text-white text-sm font-medium rounded ${isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-black'}`}
-          >
-            {isLoading ? '상담내용 요약 중...' : '현재까지 상담내용 요약하기'}
-          </button>
+          <ChatSummary
+            summary={summary}
+            onSummarize={handleSummarize}
+            isLoading={isLoading}
+            apiSummary={apiSummary}
+            summaryTimestamp={summaryTimestamp}
+          />
         </div>
       </div>
     </div>
