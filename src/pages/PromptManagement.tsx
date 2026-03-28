@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { FiEdit2, FiPlus } from 'react-icons/fi';
+import { FiEdit2, FiPlus, FiTrash2 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import DataTable from '../components/common/DataTable';
 import Modal from '../components/common/Modal';
+import Dialog from '../components/common/Dialog';
 import Input from '../components/form/Input';
 import Select from '../components/form/Select';
 import { Prompt, CreatePromptData } from '../types/prompt';
@@ -22,6 +23,11 @@ const PromptManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<ModalMode>('add');
   const [editingId, setEditingId] = useState<number | null>(null);
+
+  // 삭제 Dialog 상태
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
+  const [deleteTargetName, setDeleteTargetName] = useState<string>('');
 
   // 폼 상태
   const [formData, setFormData] = useState<CreatePromptData>({
@@ -67,6 +73,26 @@ const PromptManagement = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingId(null);
+  };
+
+  // 삭제 Dialog 관리 함수들
+  const openDeleteDialog = (prompt: Prompt) => {
+    setDeleteTargetId(prompt.id);
+    setDeleteTargetName(prompt.name);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const closeDeleteDialog = () => {
+    setIsDeleteDialogOpen(false);
+    setDeleteTargetId(null);
+    setDeleteTargetName('');
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteTargetId) {
+      setPrompts(prev => prev.filter(prompt => prompt.id !== deleteTargetId));
+    }
+    closeDeleteDialog();
   };
 
   // 폼 데이터 변경 핸들러
@@ -210,12 +236,22 @@ const PromptManagement = () => {
           <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded">
             {value}
           </span>
-          <button
-            onClick={() => handleEditPrompt(row)}
-            className="text-gray-500 hover:text-blue-600"
-          >
-            <FiEdit2 size={18} />
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => handleEditPrompt(row)}
+              className="text-gray-500 hover:text-blue-600"
+              title="편집"
+            >
+              <FiEdit2 size={18} />
+            </button>
+            <button
+              onClick={() => openDeleteDialog(row)}
+              className="text-gray-500 hover:text-red-600"
+              title="삭제"
+            >
+              <FiTrash2 size={18} />
+            </button>
+          </div>
         </div>
       ),
     },
@@ -335,6 +371,24 @@ const PromptManagement = () => {
           </div>
         </div>
       </Modal>
+
+      {/* 삭제 확인 Dialog */}
+      <Dialog
+        isOpen={isDeleteDialogOpen}
+        onClose={closeDeleteDialog}
+        onConfirm={handleConfirmDelete}
+        title="프롬프트 삭제"
+        message={
+          <div>
+            <p className="mb-2">정말로 다음 프롬프트를 삭제하시겠습니까?</p>
+            <p className="font-semibold text-gray-900">"{deleteTargetName}"</p>
+            <p className="mt-2 text-sm text-gray-600">삭제된 프롬프트는 복구할 수 없습니다.</p>
+          </div>
+        }
+        confirmText="삭제"
+        cancelText="취소"
+        variant="danger"
+      />
     </div>
   );
 };
