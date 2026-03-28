@@ -1,6 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { FiEdit2, FiEye, FiPlus, FiTrash2 } from 'react-icons/fi';
-import { useNavigate } from 'react-router-dom';
 import DataTable from '../components/common/DataTable';
 import Modal from '../components/common/Modal';
 import Dialog from '../components/common/Dialog';
@@ -19,25 +18,13 @@ const PromptManagement = () => {
   const [sortColumn, setSortColumn] = useState<keyof Prompt | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [prompts, setPrompts] = useState<Prompt[]>(initialPrompts);
-
-  // Modal 상태
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<ModalMode>('add');
   const [editingId, setEditingId] = useState<number | null>(null);
-
-  // 삭제 Dialog 상태
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
-  const [deleteTargetName, setDeleteTargetName] = useState<string>('');
-
-  // 미리보기 Modal 상태
+  const [deleteTarget, setDeleteTarget] = useState<Prompt | null>(null);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [previewPrompt, setPreviewPrompt] = useState<Prompt | null>(null);
-
-  // Toast 훅
-  const toast = useToast();
-
-  // 폼 상태
   const [formData, setFormData] = useState<CreatePromptData>({
     name: '',
     content: '',
@@ -45,15 +32,18 @@ const PromptManagement = () => {
     isDefault: false
   });
 
-  const navigate = useNavigate();
+  const toast = useToast();
   const itemsPerPage = 10;
 
-  // 프롬프트 편집 - Modal로 변경
-  const handleEditPrompt = (prompt: Prompt) => {
-    openEditModal(prompt);
-  };
+  const formatTimestamp = () =>
+    new Date().toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).replace(/\s/g, ' ');
 
-  // Modal 관리 함수들
   const openAddModal = () => {
     setModalMode('add');
     setFormData({
@@ -78,99 +68,42 @@ const PromptManagement = () => {
     setIsModalOpen(true);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingId(null);
-  };
-
-  // 삭제 Dialog 관리 함수들
-  const openDeleteDialog = (prompt: Prompt) => {
-    setDeleteTargetId(prompt.id);
-    setDeleteTargetName(prompt.name);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const closeDeleteDialog = () => {
-    setIsDeleteDialogOpen(false);
-    setDeleteTargetId(null);
-    setDeleteTargetName('');
-  };
-
   const handleConfirmDelete = () => {
-    if (deleteTargetId) {
-      setPrompts(prev => prev.filter(prompt => prompt.id !== deleteTargetId));
-      toast.success('프롬프트 삭제 완료', `"${deleteTargetName}" 프롬프트가 성공적으로 삭제되었습니다.`);
+    if (deleteTarget) {
+      setPrompts(prev => prev.filter(prompt => prompt.id !== deleteTarget.id));
+      toast.success('프롬프트 삭제 완료', `"${deleteTarget.name}" 프롬프트가 성공적으로 삭제되었습니다.`);
+      setIsDeleteDialogOpen(false);
+      setDeleteTarget(null);
     }
-    closeDeleteDialog();
   };
 
-  // 미리보기 Modal 관리 함수들
-  const openPreviewModal = (prompt: Prompt) => {
-    setPreviewPrompt(prompt);
-    setIsPreviewModalOpen(true);
-  };
-
-  const closePreviewModal = () => {
-    setIsPreviewModalOpen(false);
-    setPreviewPrompt(null);
-  };
-
-  // 폼 데이터 변경 핸들러
   const handleFormChange = (field: keyof CreatePromptData, value: string | boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  // 저장 핸들러
   const handleSave = () => {
-    if (!formData.name.trim() || !formData.content.trim()) {
-      return; // 간단한 validation
-    }
+    if (!formData.name.trim() || !formData.content.trim()) return;
+
+    const timestamp = formatTimestamp();
+    const updatedFormData = { ...formData, lastModified: timestamp, modifiedBy: '관리자' };
 
     if (modalMode === 'add') {
       const newPrompt: Prompt = {
         id: Math.max(...prompts.map(p => p.id)) + 1,
-        name: formData.name,
-        content: formData.content,
-        status: formData.status,
-        isDefault: formData.isDefault,
-        lastModified: new Date().toLocaleDateString('ko-KR', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit'
-        }).replace(/\./g, '.').replace(/\s/g, ' '),
-        modifiedBy: '관리자' // 실제로는 로그인된 사용자 정보
+        ...updatedFormData,
+        isDefault: formData.isDefault
       };
       setPrompts(prev => [...prev, newPrompt]);
       toast.success('프롬프트 추가 완료', `"${formData.name}" 프롬프트가 성공적으로 추가되었습니다.`);
     } else if (modalMode === 'edit' && editingId) {
       setPrompts(prev => prev.map(prompt =>
-        prompt.id === editingId
-          ? {
-              ...prompt,
-              name: formData.name,
-              content: formData.content,
-              status: formData.status,
-              isDefault: formData.isDefault,
-              lastModified: new Date().toLocaleDateString('ko-KR', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-              }).replace(/\./g, '.').replace(/\s/g, ' '),
-              modifiedBy: '관리자'
-            }
-          : prompt
+        prompt.id === editingId ? { ...prompt, ...updatedFormData, isDefault: formData.isDefault } : prompt
       ));
       toast.success('프롬프트 수정 완료', `"${formData.name}" 프롬프트가 성공적으로 수정되었습니다.`);
     }
 
-    closeModal();
+    setIsModalOpen(false);
+    setEditingId(null);
   };
 
   // 검색 필터링된 데이터
@@ -260,21 +193,27 @@ const PromptManagement = () => {
           </span>
           <div className="flex items-center space-x-2">
             <button
-              onClick={() => openPreviewModal(row)}
+              onClick={() => {
+                setPreviewPrompt(row);
+                setIsPreviewModalOpen(true);
+              }}
               className="text-gray-500 hover:text-green-600"
               title="미리보기"
             >
               <FiEye size={18} />
             </button>
             <button
-              onClick={() => handleEditPrompt(row)}
+              onClick={() => openEditModal(row)}
               className="text-gray-500 hover:text-blue-600"
               title="편집"
             >
               <FiEdit2 size={18} />
             </button>
             <button
-              onClick={() => openDeleteDialog(row)}
+              onClick={() => {
+                setDeleteTarget(row);
+                setIsDeleteDialogOpen(true);
+              }}
               className="text-gray-500 hover:text-red-600"
               title="삭제"
             >
@@ -349,7 +288,10 @@ const PromptManagement = () => {
       {/* 추가/편집 Modal */}
       <Modal
         isOpen={isModalOpen}
-        onClose={closeModal}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingId(null);
+        }}
         title={modalMode === 'add' ? '프롬프트 추가' : '프롬프트 편집'}
         size="lg"
       >
@@ -385,7 +327,10 @@ const PromptManagement = () => {
 
           <div className="flex justify-end space-x-3 pt-4">
             <button
-              onClick={closeModal}
+              onClick={() => {
+                setIsModalOpen(false);
+                setEditingId(null);
+              }}
               className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               취소
@@ -404,15 +349,20 @@ const PromptManagement = () => {
       {/* 삭제 확인 Dialog */}
       <Dialog
         isOpen={isDeleteDialogOpen}
-        onClose={closeDeleteDialog}
+        onClose={() => {
+          setIsDeleteDialogOpen(false);
+          setDeleteTarget(null);
+        }}
         onConfirm={handleConfirmDelete}
         title="프롬프트 삭제"
         message={
-          <div>
-            <p className="mb-2">정말로 다음 프롬프트를 삭제하시겠습니까?</p>
-            <p className="font-semibold text-gray-900">"{deleteTargetName}"</p>
-            <p className="mt-2 text-sm text-gray-600">삭제된 프롬프트는 복구할 수 없습니다.</p>
-          </div>
+          deleteTarget ? (
+            <div>
+              <p className="mb-2">정말로 다음 프롬프트를 삭제하시겠습니까?</p>
+              <p className="font-semibold text-gray-900">"{deleteTarget.name}"</p>
+              <p className="mt-2 text-sm text-gray-600">삭제된 프롬프트는 복구할 수 없습니다.</p>
+            </div>
+          ) : null
         }
         confirmText="삭제"
         cancelText="취소"
@@ -422,7 +372,10 @@ const PromptManagement = () => {
       {/* 미리보기 Modal */}
       <Modal
         isOpen={isPreviewModalOpen}
-        onClose={closePreviewModal}
+        onClose={() => {
+          setIsPreviewModalOpen(false);
+          setPreviewPrompt(null);
+        }}
         title="프롬프트 미리보기"
         size="lg"
       >
@@ -476,7 +429,10 @@ const PromptManagement = () => {
 
             <div className="flex justify-end pt-4">
               <button
-                onClick={closePreviewModal}
+                onClick={() => {
+                  setIsPreviewModalOpen(false);
+                  setPreviewPrompt(null);
+                }}
                 className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
               >
                 닫기
