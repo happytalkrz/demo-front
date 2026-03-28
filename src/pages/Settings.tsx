@@ -17,6 +17,13 @@ interface RolePermission {
   permissions: { label: string; checked: boolean }[];
 }
 
+// Theme options
+const THEME_OPTIONS = [
+  { value: 'light', label: '라이트 모드' },
+  { value: 'dark', label: '다크 모드' },
+  { value: 'system', label: '시스템 기본값' },
+] as const;
+
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const { success, error } = useToast();
@@ -101,27 +108,24 @@ const Settings = () => {
     },
   ];
 
+  const validatePassword = (pwd: typeof security.passwordChange): string | null => {
+    if (pwd.current || pwd.new || pwd.confirm) {
+      if (!pwd.current) return '현재 비밀번호를 입력해주세요.';
+      if (!pwd.new) return '새 비밀번호를 입력해주세요.';
+      if (pwd.new !== pwd.confirm) return '새 비밀번호와 확인 비밀번호가 일치하지 않습니다.';
+      if (pwd.new.length < 8) return '새 비밀번호는 최소 8자리 이상이어야 합니다.';
+    }
+    return null;
+  };
+
   const handleSave = () => {
-    // 보안 탭의 비밀번호 변경 유효성 검사
     if (activeTab === 'security') {
-      const { current, new: newPwd, confirm } = security.passwordChange;
-      if (current || newPwd || confirm) {
-        if (!current) {
-          error('비밀번호 변경 오류', '현재 비밀번호를 입력해주세요.');
-          return;
-        }
-        if (!newPwd) {
-          error('비밀번호 변경 오류', '새 비밀번호를 입력해주세요.');
-          return;
-        }
-        if (newPwd !== confirm) {
-          error('비밀번호 변경 오류', '새 비밀번호와 확인 비밀번호가 일치하지 않습니다.');
-          return;
-        }
-        if (newPwd.length < 8) {
-          error('비밀번호 변경 오류', '새 비밀번호는 최소 8자리 이상이어야 합니다.');
-          return;
-        }
+      const errorMsg = validatePassword(security.passwordChange);
+      if (errorMsg) {
+        error('비밀번호 변경 오류', errorMsg);
+        return;
+      }
+      if (security.passwordChange.current) {
         setSecurity({ ...security, passwordChange: { current: '', new: '', confirm: '' } });
       }
     }
@@ -228,21 +232,17 @@ const Settings = () => {
                       기본 테마
                     </label>
                     <div className="flex gap-4">
-                      {['light', 'dark', 'system'].map((themeOption) => (
-                        <label key={themeOption} className="inline-flex items-center">
+                      {THEME_OPTIONS.map(({ value, label }) => (
+                        <label key={value} className="inline-flex items-center">
                           <input
                             type="radio"
                             name="theme"
-                            value={themeOption}
-                            checked={general.theme === themeOption}
+                            value={value}
+                            checked={general.theme === value}
                             onChange={(e) => setGeneral({ ...general, theme: e.target.value })}
                             className="text-blue-600 focus:ring-blue-500"
                           />
-                          <span className="ml-2">
-                            {themeOption === 'light' && '라이트 모드'}
-                            {themeOption === 'dark' && '다크 모드'}
-                            {themeOption === 'system' && '시스템 기본값'}
-                          </span>
+                          <span className="ml-2">{label}</span>
                         </label>
                       ))}
                     </div>
