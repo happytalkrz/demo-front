@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FiMoreVertical, FiBookmark, FiFlag } from 'react-icons/fi';
 import ChatList from '../components/chat/ChatList';
 import ChatInput from '../components/chat/ChatInput';
 import ChatSummary from '../components/chat/ChatSummary';
@@ -46,21 +47,27 @@ const AIChatDemo = () => {
       <div className="w-2/4 flex flex-col bg-white h-[calc(100vh-50px)]">
         <div className="p-3 border-b border-gray-200 flex items-center">
           <div className="flex items-center">
-            <span className="text-sm">Tag</span>
-            <span className="ml-2 text-sm font-medium">memo</span>
+            <span className="text-sm text-gray-500">상담:</span>
+            <span className="ml-2 text-sm font-medium">{consultations[selectedChatIndex].title}</span>
           </div>
-          <div className="ml-auto flex space-x-1">
-            <button className="w-5 h-5 flex items-center justify-center rounded border border-gray-300">
-              <span className="text-xs">✕</span>
+          <div className="ml-auto flex space-x-2">
+            <button
+              className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+              title="북마크"
+            >
+              <FiBookmark className="text-gray-500" size={16} />
             </button>
-            <button className="w-5 h-5 flex items-center justify-center rounded border border-gray-300">
-              <span className="text-xs">□</span>
+            <button
+              className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+              title="우선순위"
+            >
+              <FiFlag className="text-gray-500" size={16} />
             </button>
-            <button className="w-5 h-5 flex items-center justify-center rounded border border-gray-300">
-              <span className="text-xs">◇</span>
-            </button>
-            <button className="w-5 h-5 flex items-center justify-center rounded border border-gray-300">
-              <span className="text-xs">○</span>
+            <button
+              className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+              title="더보기"
+            >
+              <FiMoreVertical className="text-gray-500" size={16} />
             </button>
           </div>
         </div>
