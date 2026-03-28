@@ -6,6 +6,7 @@ import Modal from '../components/common/Modal';
 import Dialog from '../components/common/Dialog';
 import Input from '../components/form/Input';
 import Select from '../components/form/Select';
+import { useToast } from '../hooks/useToast';
 import { Prompt, CreatePromptData } from '../types/prompt';
 import { TableColumn, PaginationInfo } from '../types/common';
 import { initialPrompts, statusOptions } from '../data/promptData';
@@ -32,6 +33,9 @@ const PromptManagement = () => {
   // 미리보기 Modal 상태
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [previewPrompt, setPreviewPrompt] = useState<Prompt | null>(null);
+
+  // Toast 훅
+  const toast = useToast();
 
   // 폼 상태
   const [formData, setFormData] = useState<CreatePromptData>({
@@ -95,6 +99,7 @@ const PromptManagement = () => {
   const handleConfirmDelete = () => {
     if (deleteTargetId) {
       setPrompts(prev => prev.filter(prompt => prompt.id !== deleteTargetId));
+      toast.success('프롬프트 삭제 완료', `"${deleteTargetName}" 프롬프트가 성공적으로 삭제되었습니다.`);
     }
     closeDeleteDialog();
   };
@@ -141,6 +146,7 @@ const PromptManagement = () => {
         modifiedBy: '관리자' // 실제로는 로그인된 사용자 정보
       };
       setPrompts(prev => [...prev, newPrompt]);
+      toast.success('프롬프트 추가 완료', `"${formData.name}" 프롬프트가 성공적으로 추가되었습니다.`);
     } else if (modalMode === 'edit' && editingId) {
       setPrompts(prev => prev.map(prompt =>
         prompt.id === editingId
@@ -161,6 +167,7 @@ const PromptManagement = () => {
             }
           : prompt
       ));
+      toast.success('프롬프트 수정 완료', `"${formData.name}" 프롬프트가 성공적으로 수정되었습니다.`);
     }
 
     closeModal();
