@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FiSave, FiLock, FiUsers, FiMonitor, FiBell, FiUser } from 'react-icons/fi';
 import Input from '../components/form/Input';
 import Select from '../components/form/Select';
@@ -10,6 +10,11 @@ interface TabConfig {
   id: string;
   icon: React.ComponentType<{ className?: string }>;
   label: string;
+}
+
+interface RolePermission {
+  role: string;
+  permissions: { label: string; checked: boolean }[];
 }
 
 const Settings = () => {
@@ -76,6 +81,25 @@ const Settings = () => {
     security: { title: '보안 설정 저장 완료', message: '보안 설정이 성공적으로 저장되었습니다.' },
     permissions: { title: '권한 설정 저장 완료', message: '권한 설정이 성공적으로 저장되었습니다.' },
   };
+
+  const rolePermissions: RolePermission[] = [
+    {
+      role: '관리자',
+      permissions: [
+        { label: '모든 시스템 접근', checked: true },
+        { label: '사용자 관리', checked: true },
+        { label: '설정 변경', checked: true },
+      ],
+    },
+    {
+      role: '편집자',
+      permissions: [
+        { label: '콘텐츠 생성', checked: true },
+        { label: '콘텐츠 수정', checked: true },
+        { label: '콘텐츠 삭제', checked: false },
+      ],
+    },
+  ];
 
   const handleSave = () => {
     // 보안 탭의 비밀번호 변경 유효성 검사
@@ -358,63 +382,23 @@ const Settings = () => {
                       역할별 권한
                     </label>
                     <div className="space-y-4">
-                      <div className="border p-4 rounded-md">
-                        <h3 className="font-medium mb-2">관리자</h3>
-                        <div className="space-y-2">
-                          <label className="flex items-center">
-                            <input 
-                              type="checkbox"
-                              defaultChecked
-                              className="text-blue-600 focus:ring-blue-500 rounded"
-                            />
-                            <span className="ml-2 text-sm">모든 시스템 접근</span>
-                          </label>
-                          <label className="flex items-center">
-                            <input 
-                              type="checkbox"
-                              defaultChecked
-                              className="text-blue-600 focus:ring-blue-500 rounded"
-                            />
-                            <span className="ml-2 text-sm">사용자 관리</span>
-                          </label>
-                          <label className="flex items-center">
-                            <input 
-                              type="checkbox"
-                              defaultChecked
-                              className="text-blue-600 focus:ring-blue-500 rounded"
-                            />
-                            <span className="ml-2 text-sm">설정 변경</span>
-                          </label>
+                      {rolePermissions.map((role) => (
+                        <div key={role.role} className="border p-4 rounded-md">
+                          <h3 className="font-medium mb-2">{role.role}</h3>
+                          <div className="space-y-2">
+                            {role.permissions.map((perm) => (
+                              <label key={perm.label} className="flex items-center">
+                                <input
+                                  type="checkbox"
+                                  defaultChecked={perm.checked}
+                                  className="text-blue-600 focus:ring-blue-500 rounded"
+                                />
+                                <span className="ml-2 text-sm">{perm.label}</span>
+                              </label>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                      <div className="border p-4 rounded-md">
-                        <h3 className="font-medium mb-2">편집자</h3>
-                        <div className="space-y-2">
-                          <label className="flex items-center">
-                            <input 
-                              type="checkbox"
-                              defaultChecked
-                              className="text-blue-600 focus:ring-blue-500 rounded"
-                            />
-                            <span className="ml-2 text-sm">콘텐츠 생성</span>
-                          </label>
-                          <label className="flex items-center">
-                            <input 
-                              type="checkbox"
-                              defaultChecked
-                              className="text-blue-600 focus:ring-blue-500 rounded"
-                            />
-                            <span className="ml-2 text-sm">콘텐츠 수정</span>
-                          </label>
-                          <label className="flex items-center">
-                            <input 
-                              type="checkbox"
-                              className="text-blue-600 focus:ring-blue-500 rounded"
-                            />
-                            <span className="ml-2 text-sm">콘텐츠 삭제</span>
-                          </label>
-                        </div>
-                      </div>
+                      ))}
                     </div>
                   </div>
                 </div>
