@@ -1,30 +1,239 @@
-import React, { useState } from 'react';
-import { FiEdit2, FiChevronLeft, FiChevronRight, FiChevronsLeft, FiChevronsRight } from 'react-icons/fi';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useMemo } from 'react';
+import { FiEdit2, FiPlus } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
+import DataTable from '../components/common/DataTable';
+import Modal from '../components/common/Modal';
+import Input from '../components/form/Input';
+import Select from '../components/form/Select';
+import { Prompt, CreatePromptData } from '../types/prompt';
+import { TableColumn, PaginationInfo } from '../types/common';
+import { initialPrompts, statusOptions } from '../data/promptData';
+
+type ModalMode = 'add' | 'edit';
 
 const PromptManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [activePage, setActivePage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sortColumn, setSortColumn] = useState<keyof Prompt | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [prompts, setPrompts] = useState<Prompt[]>(initialPrompts);
+
+  // Modal 상태
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<ModalMode>('add');
+  const [editingId, setEditingId] = useState<number | null>(null);
+
+  // 폼 상태
+  const [formData, setFormData] = useState<CreatePromptData>({
+    name: '',
+    content: '',
+    status: '기본 프롬프트 사용 중',
+    isDefault: false
+  });
+
   const navigate = useNavigate();
-  
-  // 프롬프트 데이터
-  const promptData = [
-    { id: 1, name: '상담 중 요약', lastModified: '-', modifiedBy: '-', status: '기본 프롬프트 사용 중' },
-    { id: 2, name: '상담 종료 요약', lastModified: '2025.04.22 09:15', modifiedBy: '박관리', status: '커스텀 프롬프트 사용 중' },
-  ];
+  const itemsPerPage = 10;
 
-  // 페이지 배열 생성
-  const pages = [1, 2, 3, 4, 5];
-
-  // 프롬프트 편집 페이지로 이동
-  const handleEditPrompt = (promptName: string) => {
-    navigate('/prompts', { state: { promptName } });
+  // 프롬프트 편집 - Modal로 변경
+  const handleEditPrompt = (prompt: Prompt) => {
+    openEditModal(prompt);
   };
+
+  // Modal 관리 함수들
+  const openAddModal = () => {
+    setModalMode('add');
+    setFormData({
+      name: '',
+      content: '',
+      status: '기본 프롬프트 사용 중',
+      isDefault: false
+    });
+    setEditingId(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (prompt: Prompt) => {
+    setModalMode('edit');
+    setFormData({
+      name: prompt.name,
+      content: prompt.content,
+      status: prompt.status,
+      isDefault: prompt.isDefault
+    });
+    setEditingId(prompt.id);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingId(null);
+  };
+
+  // 폼 데이터 변경 핸들러
+  const handleFormChange = (field: keyof CreatePromptData, value: string | boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // 저장 핸들러
+  const handleSave = () => {
+    if (!formData.name.trim() || !formData.content.trim()) {
+      return; // 간단한 validation
+    }
+
+    if (modalMode === 'add') {
+      const newPrompt: Prompt = {
+        id: Math.max(...prompts.map(p => p.id)) + 1,
+        name: formData.name,
+        content: formData.content,
+        status: formData.status,
+        isDefault: formData.isDefault,
+        lastModified: new Date().toLocaleDateString('ko-KR', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        }).replace(/\./g, '.').replace(/\s/g, ' '),
+        modifiedBy: '관리자' // 실제로는 로그인된 사용자 정보
+      };
+      setPrompts(prev => [...prev, newPrompt]);
+    } else if (modalMode === 'edit' && editingId) {
+      setPrompts(prev => prev.map(prompt =>
+        prompt.id === editingId
+          ? {
+              ...prompt,
+              name: formData.name,
+              content: formData.content,
+              status: formData.status,
+              isDefault: formData.isDefault,
+              lastModified: new Date().toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+              }).replace(/\./g, '.').replace(/\s/g, ' '),
+              modifiedBy: '관리자'
+            }
+          : prompt
+      ));
+    }
+
+    closeModal();
+  };
+
+  // 검색 필터링된 데이터
+  const filteredData = useMemo(() => {
+    let filtered = prompts;
+
+    if (searchTerm) {
+      filtered = filtered.filter(prompt =>
+        prompt.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        prompt.modifiedBy.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // 정렬 적용
+    if (sortColumn) {
+      filtered = [...filtered].sort((a, b) => {
+        const aValue = a[sortColumn];
+        const bValue = b[sortColumn];
+
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          const comparison = aValue.localeCompare(bValue);
+          return sortDirection === 'asc' ? comparison : -comparison;
+        }
+
+        if (typeof aValue === 'number' && typeof bValue === 'number') {
+          return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+        }
+
+        return 0;
+      });
+    }
+
+    return filtered;
+  }, [searchTerm, sortColumn, sortDirection]);
+
+  // 페이지네이션 적용
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredData.slice(startIndex, endIndex);
+  }, [filteredData, currentPage]);
+
+  // 페이지네이션 정보
+  const paginationInfo: PaginationInfo = {
+    currentPage,
+    totalPages: Math.ceil(filteredData.length / itemsPerPage),
+    totalItems: filteredData.length,
+    itemsPerPage,
+  };
+
+  // 정렬 핸들러
+  const handleSort = (column: keyof Prompt, direction: 'asc' | 'desc') => {
+    setSortColumn(column);
+    setSortDirection(direction);
+  };
+
+  // 페이지 변경 핸들러
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // 테이블 컬럼 정의
+  const columns: TableColumn<Prompt>[] = [
+    {
+      key: 'name',
+      label: '기능명',
+      sortable: true,
+    },
+    {
+      key: 'lastModified',
+      label: '최근 수정일',
+      sortable: true,
+    },
+    {
+      key: 'modifiedBy',
+      label: '수정자',
+      sortable: true,
+    },
+    {
+      key: 'status',
+      label: '상태',
+      sortable: false,
+      render: (value: string, row: Prompt) => (
+        <div className="flex items-center justify-between">
+          <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded">
+            {value}
+          </span>
+          <button
+            onClick={() => handleEditPrompt(row)}
+            className="text-gray-500 hover:text-blue-600"
+          >
+            <FiEdit2 size={18} />
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="flex flex-col h-full">
-      <h1 className="text-2xl font-semibold mb-4">프롬프트 관리</h1>
-      
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-semibold">프롬프트 관리</h1>
+        <button
+          onClick={openAddModal}
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <FiPlus className="w-4 h-4 mr-2" />
+          프롬프트 추가
+        </button>
+      </div>
+
       <p className="text-sm text-gray-600 mb-6">
         에티토스 AI 기능별 프롬프트 설정 화면을 확인하고 수정할 수 있습니다. 별도로 설정하지 않은 경우, 시스템 기본 프롬프트가 자동으로 적용됩니다.
       </p>
@@ -39,7 +248,7 @@ const PromptManagement = () => {
           <div className="relative flex-grow">
             <input
               type="text"
-              placeholder="상담사명/아이디 검색"
+              placeholder="기능명/수정자 검색"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full h-10 pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -51,73 +260,15 @@ const PromptManagement = () => {
             </div>
           </div>
         </div>
-        
-        {/* 테이블 */}
-        <div className="w-full">
-          <div className="w-full overflow-x-auto">
-            <table className="w-full text-sm text-left text-gray-500">
-              <thead className="text-xs text-gray-700 uppercase bg-gray-100">
-                <tr>
-                  <th scope="col" className="px-6 py-3 w-1/4">기능명</th>
-                  <th scope="col" className="px-6 py-3 w-1/4">최근 수정일</th>
-                  <th scope="col" className="px-6 py-3 w-1/4">수정자</th>
-                  <th scope="col" className="px-6 py-3 w-1/4">상태</th>
-                </tr>
-              </thead>
-              <tbody>
-                {promptData.map((prompt) => (
-                  <tr key={prompt.id} className="bg-white border-b hover:bg-gray-50">
-                    <td className="px-6 py-4">{prompt.name}</td>
-                    <td className="px-6 py-4">{prompt.lastModified}</td>
-                    <td className="px-6 py-4">{prompt.modifiedBy}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-between">
-                        <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded">{prompt.status}</span>
-                        <button 
-                          onClick={() => handleEditPrompt(prompt.name)}
-                          className="text-gray-500 hover:text-blue-600"
-                        >
-                          <FiEdit2 size={18} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-        
-        {/* 페이지네이션 */}
-        <div className="flex items-center justify-center p-4">
-          <button className="px-2 py-1 mx-1 rounded-md">
-            <FiChevronsLeft />
-          </button>
-          <button className="px-2 py-1 mx-1 rounded-md">
-            <FiChevronLeft />
-          </button>
-          
-          {pages.map((page) => (
-            <button
-              key={page}
-              onClick={() => setActivePage(page)}
-              className={`px-3 py-1 mx-1 rounded-md ${
-                activePage === page
-                  ? 'bg-gray-800 text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              {page}
-            </button>
-          ))}
-          
-          <button className="px-2 py-1 mx-1 rounded-md">
-            <FiChevronRight />
-          </button>
-          <button className="px-2 py-1 mx-1 rounded-md">
-            <FiChevronsRight />
-          </button>
-        </div>
+
+        {/* DataTable */}
+        <DataTable
+          data={paginatedData}
+          columns={columns}
+          pagination={paginationInfo}
+          onPageChange={handlePageChange}
+          onSort={handleSort}
+        />
       </div>
 
       {/* 프롬프트 관리 정책 */}
@@ -129,6 +280,61 @@ const PromptManagement = () => {
           <li>초기화 기능을 통해 언제든 기본 프롬프트로 복구할 수 있습니다.</li>
         </ul>
       </div>
+
+      {/* 추가/편집 Modal */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={modalMode === 'add' ? '프롬프트 추가' : '프롬프트 편집'}
+        size="lg"
+      >
+        <div className="space-y-4">
+          <Input
+            label="프롬프트 이름"
+            value={formData.name}
+            onChange={(e) => handleFormChange('name', e.target.value)}
+            placeholder="프롬프트 이름을 입력하세요"
+            required
+          />
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              프롬프트 내용
+            </label>
+            <textarea
+              value={formData.content}
+              onChange={(e) => handleFormChange('content', e.target.value)}
+              placeholder="프롬프트 내용을 입력하세요"
+              rows={6}
+              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+              required
+            />
+          </div>
+
+          <Select
+            label="상태"
+            value={formData.status}
+            onChange={(e) => handleFormChange('status', e.target.value as Prompt['status'])}
+            options={statusOptions}
+          />
+
+          <div className="flex justify-end space-x-3 pt-4">
+            <button
+              onClick={closeModal}
+              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              취소
+            </button>
+            <button
+              onClick={handleSave}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={!formData.name.trim() || !formData.content.trim()}
+            >
+              {modalMode === 'add' ? '추가' : '저장'}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
