@@ -50,3 +50,18 @@ export interface RegisterFormData {
 export interface FormErrors {
   [key: string]: string;
 }
+
+export interface StatCardData {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  value: string;
+  bgColor: string;
+  iconColor: string;
+}
+
+export interface ActivityItem {
+  id: number;
+  type: string;
+  description: string;
+  time: string;
+}
