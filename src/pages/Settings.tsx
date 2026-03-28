@@ -4,9 +4,17 @@ import Input from '../components/form/Input';
 import Select from '../components/form/Select';
 import Toggle from '../components/form/Toggle';
 import { SelectOption } from '../types/common';
+import { useToast } from '../hooks/useToast';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('profile');
+  const { success, error } = useToast();
+
+  // 프로필 설정 state
+  const [profile, setProfile] = useState({
+    name: '관리자',
+    email: 'admin@example.com',
+  });
 
   // 일반 설정 state
   const [systemName, setSystemName] = useState('관리 시스템');
@@ -56,6 +64,72 @@ const Settings = () => {
     { value: 'America/New_York', label: '(GMT-05:00) 뉴욕' },
     { value: 'Europe/London', label: '(GMT+00:00) 런던' },
   ];
+
+  // 저장 핸들러들
+  const handleSaveProfile = () => {
+    // 프로필 저장 로직 (실제로는 API 호출)
+    success('프로필 저장 완료', '프로필 정보가 성공적으로 저장되었습니다.');
+  };
+
+  const handleSaveGeneral = () => {
+    // 일반 설정 저장 로직 (실제로는 API 호출)
+    success('일반 설정 저장 완료', '일반 설정이 성공적으로 저장되었습니다.');
+  };
+
+  const handleSaveNotifications = () => {
+    // 알림 설정 저장 로직 (실제로는 API 호출)
+    success('알림 설정 저장 완료', '알림 설정이 성공적으로 저장되었습니다.');
+  };
+
+  const handleSaveSecurity = () => {
+    // 비밀번호 변경 유효성 검사
+    if (passwordChange.current || passwordChange.new || passwordChange.confirm) {
+      if (!passwordChange.current) {
+        error('비밀번호 변경 오류', '현재 비밀번호를 입력해주세요.');
+        return;
+      }
+      if (!passwordChange.new) {
+        error('비밀번호 변경 오류', '새 비밀번호를 입력해주세요.');
+        return;
+      }
+      if (passwordChange.new !== passwordChange.confirm) {
+        error('비밀번호 변경 오류', '새 비밀번호와 확인 비밀번호가 일치하지 않습니다.');
+        return;
+      }
+      if (passwordChange.new.length < 8) {
+        error('비밀번호 변경 오류', '새 비밀번호는 최소 8자리 이상이어야 합니다.');
+        return;
+      }
+
+      // 비밀번호 변경 후 초기화
+      setPasswordChange({ current: '', new: '', confirm: '' });
+    }
+
+    // 보안 설정 저장 로직 (실제로는 API 호출)
+    success('보안 설정 저장 완료', '보안 설정이 성공적으로 저장되었습니다.');
+  };
+
+  const handleSavePermissions = () => {
+    // 권한 설정 저장 로직 (실제로는 API 호출)
+    success('권한 설정 저장 완료', '권한 설정이 성공적으로 저장되었습니다.');
+  };
+
+  const getSaveHandler = () => {
+    switch (activeTab) {
+      case 'profile':
+        return handleSaveProfile;
+      case 'general':
+        return handleSaveGeneral;
+      case 'notifications':
+        return handleSaveNotifications;
+      case 'security':
+        return handleSaveSecurity;
+      case 'permissions':
+        return handleSavePermissions;
+      default:
+        return () => {};
+    }
+  };
 
   return (
     <div>
@@ -146,13 +220,15 @@ const Settings = () => {
                         label="이름"
                         type="text"
                         placeholder="이름을 입력하세요"
-                        defaultValue="관리자"
+                        value={profile.name}
+                        onChange={(e) => setProfile(prev => ({ ...prev, name: e.target.value }))}
                       />
                       <Input
                         label="이메일"
                         type="email"
                         placeholder="이메일을 입력하세요"
-                        defaultValue="admin@example.com"
+                        value={profile.email}
+                        onChange={(e) => setProfile(prev => ({ ...prev, email: e.target.value }))}
                       />
                     </div>
                   </div>
@@ -437,14 +513,15 @@ const Settings = () => {
             )}
 
             <div className="mt-8 flex justify-end">
-              <button 
+              <button
                 type="button"
                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition mr-2"
               >
                 취소
               </button>
-              <button 
+              <button
                 type="button"
+                onClick={getSaveHandler()}
                 className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition flex items-center"
               >
                 <FiSave className="mr-2" /> 저장
