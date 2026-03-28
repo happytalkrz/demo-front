@@ -1,4 +1,4 @@
-import { ChatData } from '../types/chat';
+import { ChatData, Consultation } from '../types/chat';
 
 export const chatData: ChatData[] = [
   {
@@ -33,5 +33,58 @@ export const chatData: ChatData[] = [
       { "role": "customer", "message": "택배 접수로 부탁드립니다. 방문은 어려울 것 같아서요." },
       { "role": "counselor", "message": "네 고객님. 택배 수거 접수해드리겠습니다. 수거 기사님 방문 전 문자 안내가 발송됩니다." }
     ]
+  }
+];
+
+export const consultations: Consultation[] = [
+  {
+    id: 'CONS-001',
+    customerName: '김철수',
+    consultationDate: '2024-03-28T09:15:00',
+    status: 'completed',
+    category: '배송 문의',
+    chatDataIndex: 0,
+    priority: 'medium',
+    summary: '배송 지연 문의 - 재고 부족으로 인한 출고 지연 안내 완료'
+  },
+  {
+    id: 'CONS-002',
+    customerName: '이영희',
+    consultationDate: '2024-03-28T10:30:00',
+    status: 'completed',
+    category: '환불 요청',
+    chatDataIndex: 1,
+    priority: 'high',
+    summary: '제품 불만족으로 인한 환불 요청 - 환불 절차 안내 완료'
+  },
+  {
+    id: 'CONS-003',
+    customerName: '박민수',
+    consultationDate: '2024-03-28T11:45:00',
+    status: 'in_progress',
+    category: 'AS 요청',
+    chatDataIndex: 2,
+    priority: 'medium',
+    summary: '전자제품 고장으로 인한 AS 신청 - 택배 수거 접수 중'
+  },
+  {
+    id: 'CONS-004',
+    customerName: '정하나',
+    consultationDate: '2024-03-28T13:20:00',
+    status: 'waiting',
+    category: '제품 문의',
+    chatDataIndex: -1, // 아직 채팅 데이터 없음
+    priority: 'low',
+    summary: '제품 사양 문의 대기 중'
+  },
+  {
+    id: 'CONS-005',
+    customerName: '최동원',
+    consultationDate: '2024-03-28T14:00:00',
+    status: 'waiting',
+    category: '기술 지원',
+    chatDataIndex: -1, // 아직 채팅 데이터 없음
+    priority: 'high',
+    summary: '설치 관련 기술 지원 요청 대기 중'
   }
 ]; 
