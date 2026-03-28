@@ -17,7 +17,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
   className = '',
   ...props
 }, ref) => {
-  const baseClasses = 'block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors';
+  const baseClasses = 'block w-full px-3 py-3 sm:py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors';
   const errorClasses = error ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300';
   const iconPadding = leftIcon ? 'pl-10' : rightIcon ? 'pr-10' : '';
 
