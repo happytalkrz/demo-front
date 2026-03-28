@@ -6,49 +6,53 @@ import Toggle from '../components/form/Toggle';
 import { SelectOption } from '../types/common';
 import { useToast } from '../hooks/useToast';
 
+interface TabConfig {
+  id: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+}
+
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const { success, error } = useToast();
 
-  // 프로필 설정 state
   const [profile, setProfile] = useState({
     name: '관리자',
     email: 'admin@example.com',
   });
 
-  // 일반 설정 state
-  const [systemName, setSystemName] = useState('관리 시스템');
-  const [language, setLanguage] = useState('ko');
-  const [timezone, setTimezone] = useState('Asia/Seoul');
-  const [theme, setTheme] = useState('light');
-
-  // 알림 설정 state
-  const [emailNotifications, setEmailNotifications] = useState({
-    security: true,
-    systemUpdate: true,
-    weeklyReport: true,
-  });
-  const [browserNotifications, setBrowserNotifications] = useState({
-    newMessage: true,
-    eventAlert: true,
+  const [general, setGeneral] = useState({
+    systemName: '관리 시스템',
+    language: 'ko',
+    timezone: 'Asia/Seoul',
+    theme: 'light',
   });
 
-  // 보안 설정 state
-  const [sessionTimeout, setSessionTimeout] = useState('30');
-  const [passwordPolicy, setPasswordPolicy] = useState({
-    minLength: true,
-    uppercase: true,
-    specialChar: true,
-    periodicChange: true,
+  const [notifications, setNotifications] = useState({
+    email: { security: true, systemUpdate: true, weeklyReport: true },
+    browser: { newMessage: true, eventAlert: true },
   });
-  const [twoFactorAuth, setTwoFactorAuth] = useState(false);
 
-  // 비밀번호 변경 state
-  const [passwordChange, setPasswordChange] = useState({
-    current: '',
-    new: '',
-    confirm: '',
+  const [security, setSecurity] = useState({
+    sessionTimeout: '30',
+    passwordPolicy: {
+      minLength: true,
+      uppercase: true,
+      specialChar: true,
+      periodicChange: true,
+    },
+    twoFactorAuth: false,
+    passwordChange: { current: '', new: '', confirm: '' },
   });
+
+  // 탭 설정
+  const tabs: TabConfig[] = [
+    { id: 'profile', icon: FiUser, label: '프로필' },
+    { id: 'general', icon: FiMonitor, label: '일반 설정' },
+    { id: 'security', icon: FiLock, label: '보안' },
+    { id: 'notifications', icon: FiBell, label: '알림' },
+    { id: 'permissions', icon: FiUsers, label: '권한 관리' },
+  ];
 
   // Select options
   const languageOptions: SelectOption[] = [
@@ -65,69 +69,42 @@ const Settings = () => {
     { value: 'Europe/London', label: '(GMT+00:00) 런던' },
   ];
 
-  // 저장 핸들러들
-  const handleSaveProfile = () => {
-    // 프로필 저장 로직 (실제로는 API 호출)
-    success('프로필 저장 완료', '프로필 정보가 성공적으로 저장되었습니다.');
+  const saveMessages: Record<string, { title: string; message: string }> = {
+    profile: { title: '프로필 저장 완료', message: '프로필 정보가 성공적으로 저장되었습니다.' },
+    general: { title: '일반 설정 저장 완료', message: '일반 설정이 성공적으로 저장되었습니다.' },
+    notifications: { title: '알림 설정 저장 완료', message: '알림 설정이 성공적으로 저장되었습니다.' },
+    security: { title: '보안 설정 저장 완료', message: '보안 설정이 성공적으로 저장되었습니다.' },
+    permissions: { title: '권한 설정 저장 완료', message: '권한 설정이 성공적으로 저장되었습니다.' },
   };
 
-  const handleSaveGeneral = () => {
-    // 일반 설정 저장 로직 (실제로는 API 호출)
-    success('일반 설정 저장 완료', '일반 설정이 성공적으로 저장되었습니다.');
-  };
-
-  const handleSaveNotifications = () => {
-    // 알림 설정 저장 로직 (실제로는 API 호출)
-    success('알림 설정 저장 완료', '알림 설정이 성공적으로 저장되었습니다.');
-  };
-
-  const handleSaveSecurity = () => {
-    // 비밀번호 변경 유효성 검사
-    if (passwordChange.current || passwordChange.new || passwordChange.confirm) {
-      if (!passwordChange.current) {
-        error('비밀번호 변경 오류', '현재 비밀번호를 입력해주세요.');
-        return;
+  const handleSave = () => {
+    // 보안 탭의 비밀번호 변경 유효성 검사
+    if (activeTab === 'security') {
+      const { current, new: newPwd, confirm } = security.passwordChange;
+      if (current || newPwd || confirm) {
+        if (!current) {
+          error('비밀번호 변경 오류', '현재 비밀번호를 입력해주세요.');
+          return;
+        }
+        if (!newPwd) {
+          error('비밀번호 변경 오류', '새 비밀번호를 입력해주세요.');
+          return;
+        }
+        if (newPwd !== confirm) {
+          error('비밀번호 변경 오류', '새 비밀번호와 확인 비밀번호가 일치하지 않습니다.');
+          return;
+        }
+        if (newPwd.length < 8) {
+          error('비밀번호 변경 오류', '새 비밀번호는 최소 8자리 이상이어야 합니다.');
+          return;
+        }
+        setSecurity({ ...security, passwordChange: { current: '', new: '', confirm: '' } });
       }
-      if (!passwordChange.new) {
-        error('비밀번호 변경 오류', '새 비밀번호를 입력해주세요.');
-        return;
-      }
-      if (passwordChange.new !== passwordChange.confirm) {
-        error('비밀번호 변경 오류', '새 비밀번호와 확인 비밀번호가 일치하지 않습니다.');
-        return;
-      }
-      if (passwordChange.new.length < 8) {
-        error('비밀번호 변경 오류', '새 비밀번호는 최소 8자리 이상이어야 합니다.');
-        return;
-      }
-
-      // 비밀번호 변경 후 초기화
-      setPasswordChange({ current: '', new: '', confirm: '' });
     }
 
-    // 보안 설정 저장 로직 (실제로는 API 호출)
-    success('보안 설정 저장 완료', '보안 설정이 성공적으로 저장되었습니다.');
-  };
-
-  const handleSavePermissions = () => {
-    // 권한 설정 저장 로직 (실제로는 API 호출)
-    success('권한 설정 저장 완료', '권한 설정이 성공적으로 저장되었습니다.');
-  };
-
-  const getSaveHandler = () => {
-    switch (activeTab) {
-      case 'profile':
-        return handleSaveProfile;
-      case 'general':
-        return handleSaveGeneral;
-      case 'notifications':
-        return handleSaveNotifications;
-      case 'security':
-        return handleSaveSecurity;
-      case 'permissions':
-        return handleSavePermissions;
-      default:
-        return () => {};
+    const message = saveMessages[activeTab];
+    if (message) {
+      success(message.title, message.message);
     }
   };
 
@@ -140,61 +117,22 @@ const Settings = () => {
         <div className="md:w-1/4">
           <div className="bg-white rounded-lg shadow">
             <ul>
-              <li>
-                <button
-                  className={`flex items-center w-full px-4 py-3 text-left ${
-                    activeTab === 'profile' ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-600' : 'hover:bg-gray-50'
-                  }`}
-                  onClick={() => setActiveTab('profile')}
-                >
-                  <FiUser className="mr-3" />
-                  <span>프로필</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  className={`flex items-center w-full px-4 py-3 text-left ${
-                    activeTab === 'general' ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-600' : 'hover:bg-gray-50'
-                  }`}
-                  onClick={() => setActiveTab('general')}
-                >
-                  <FiMonitor className="mr-3" />
-                  <span>일반 설정</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  className={`flex items-center w-full px-4 py-3 text-left ${
-                    activeTab === 'security' ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-600' : 'hover:bg-gray-50'
-                  }`}
-                  onClick={() => setActiveTab('security')}
-                >
-                  <FiLock className="mr-3" />
-                  <span>보안</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  className={`flex items-center w-full px-4 py-3 text-left ${
-                    activeTab === 'notifications' ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-600' : 'hover:bg-gray-50'
-                  }`}
-                  onClick={() => setActiveTab('notifications')}
-                >
-                  <FiBell className="mr-3" />
-                  <span>알림</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  className={`flex items-center w-full px-4 py-3 text-left ${
-                    activeTab === 'permissions' ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-600' : 'hover:bg-gray-50'
-                  }`}
-                  onClick={() => setActiveTab('permissions')}
-                >
-                  <FiUsers className="mr-3" />
-                  <span>권한 관리</span>
-                </button>
-              </li>
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <li key={tab.id}>
+                    <button
+                      className={`flex items-center w-full px-4 py-3 text-left ${
+                        activeTab === tab.id ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-600' : 'hover:bg-gray-50'
+                      }`}
+                      onClick={() => setActiveTab(tab.id)}
+                    >
+                      <Icon className="mr-3" />
+                      <span>{tab.label}</span>
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         </div>
@@ -243,22 +181,22 @@ const Settings = () => {
                   <Input
                     label="시스템 이름"
                     type="text"
-                    value={systemName}
-                    onChange={(e) => setSystemName(e.target.value)}
+                    value={general.systemName}
+                    onChange={(e) => setGeneral({ ...general, systemName: e.target.value })}
                   />
 
                   <Select
                     label="언어 설정"
                     options={languageOptions}
-                    value={language}
-                    onChange={(e) => setLanguage(e.target.value)}
+                    value={general.language}
+                    onChange={(e) => setGeneral({ ...general, language: e.target.value })}
                   />
 
                   <Select
                     label="시간대"
                     options={timezoneOptions}
-                    value={timezone}
-                    onChange={(e) => setTimezone(e.target.value)}
+                    value={general.timezone}
+                    onChange={(e) => setGeneral({ ...general, timezone: e.target.value })}
                   />
 
                   <div>
@@ -266,39 +204,23 @@ const Settings = () => {
                       기본 테마
                     </label>
                     <div className="flex gap-4">
-                      <label className="inline-flex items-center">
-                        <input
-                          type="radio"
-                          name="theme"
-                          value="light"
-                          checked={theme === 'light'}
-                          onChange={(e) => setTheme(e.target.value)}
-                          className="text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="ml-2">라이트 모드</span>
-                      </label>
-                      <label className="inline-flex items-center">
-                        <input
-                          type="radio"
-                          name="theme"
-                          value="dark"
-                          checked={theme === 'dark'}
-                          onChange={(e) => setTheme(e.target.value)}
-                          className="text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="ml-2">다크 모드</span>
-                      </label>
-                      <label className="inline-flex items-center">
-                        <input
-                          type="radio"
-                          name="theme"
-                          value="system"
-                          checked={theme === 'system'}
-                          onChange={(e) => setTheme(e.target.value)}
-                          className="text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="ml-2">시스템 기본값</span>
-                      </label>
+                      {['light', 'dark', 'system'].map((themeOption) => (
+                        <label key={themeOption} className="inline-flex items-center">
+                          <input
+                            type="radio"
+                            name="theme"
+                            value={themeOption}
+                            checked={general.theme === themeOption}
+                            onChange={(e) => setGeneral({ ...general, theme: e.target.value })}
+                            className="text-blue-600 focus:ring-blue-500"
+                          />
+                          <span className="ml-2">
+                            {themeOption === 'light' && '라이트 모드'}
+                            {themeOption === 'dark' && '다크 모드'}
+                            {themeOption === 'system' && '시스템 기본값'}
+                          </span>
+                        </label>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -312,8 +234,8 @@ const Settings = () => {
                   <Input
                     label="세션 타임아웃 (분)"
                     type="number"
-                    value={sessionTimeout}
-                    onChange={(e) => setSessionTimeout(e.target.value)}
+                    value={security.sessionTimeout}
+                    onChange={(e) => setSecurity({ ...security, sessionTimeout: e.target.value })}
                     min="5"
                   />
 
@@ -323,22 +245,22 @@ const Settings = () => {
                       <Input
                         label="현재 비밀번호"
                         type="password"
-                        value={passwordChange.current}
-                        onChange={(e) => setPasswordChange(prev => ({ ...prev, current: e.target.value }))}
+                        value={security.passwordChange.current}
+                        onChange={(e) => setSecurity({ ...security, passwordChange: { ...security.passwordChange, current: e.target.value } })}
                         placeholder="현재 비밀번호를 입력하세요"
                       />
                       <Input
                         label="새 비밀번호"
                         type="password"
-                        value={passwordChange.new}
-                        onChange={(e) => setPasswordChange(prev => ({ ...prev, new: e.target.value }))}
+                        value={security.passwordChange.new}
+                        onChange={(e) => setSecurity({ ...security, passwordChange: { ...security.passwordChange, new: e.target.value } })}
                         placeholder="새 비밀번호를 입력하세요"
                       />
                       <Input
                         label="비밀번호 확인"
                         type="password"
-                        value={passwordChange.confirm}
-                        onChange={(e) => setPasswordChange(prev => ({ ...prev, confirm: e.target.value }))}
+                        value={security.passwordChange.confirm}
+                        onChange={(e) => setSecurity({ ...security, passwordChange: { ...security.passwordChange, confirm: e.target.value } })}
                         placeholder="새 비밀번호를 다시 입력하세요"
                       />
                     </div>
@@ -349,49 +271,32 @@ const Settings = () => {
                       비밀번호 정책
                     </label>
                     <div className="space-y-2">
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={passwordPolicy.minLength}
-                          onChange={(e) => setPasswordPolicy(prev => ({ ...prev, minLength: e.target.checked }))}
-                          className="text-blue-600 focus:ring-blue-500 rounded"
-                        />
-                        <span className="ml-2 text-sm">최소 8자리 이상</span>
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={passwordPolicy.uppercase}
-                          onChange={(e) => setPasswordPolicy(prev => ({ ...prev, uppercase: e.target.checked }))}
-                          className="text-blue-600 focus:ring-blue-500 rounded"
-                        />
-                        <span className="ml-2 text-sm">대문자 포함</span>
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={passwordPolicy.specialChar}
-                          onChange={(e) => setPasswordPolicy(prev => ({ ...prev, specialChar: e.target.checked }))}
-                          className="text-blue-600 focus:ring-blue-500 rounded"
-                        />
-                        <span className="ml-2 text-sm">특수문자 포함</span>
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={passwordPolicy.periodicChange}
-                          onChange={(e) => setPasswordPolicy(prev => ({ ...prev, periodicChange: e.target.checked }))}
-                          className="text-blue-600 focus:ring-blue-500 rounded"
-                        />
-                        <span className="ml-2 text-sm">90일마다 변경 요구</span>
-                      </label>
+                      {Object.entries({
+                        minLength: '최소 8자리 이상',
+                        uppercase: '대문자 포함',
+                        specialChar: '특수문자 포함',
+                        periodicChange: '90일마다 변경 요구',
+                      }).map(([key, label]) => (
+                        <label key={key} className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={security.passwordPolicy[key as keyof typeof security.passwordPolicy]}
+                            onChange={(e) => setSecurity({
+                              ...security,
+                              passwordPolicy: { ...security.passwordPolicy, [key]: e.target.checked },
+                            })}
+                            className="text-blue-600 focus:ring-blue-500 rounded"
+                          />
+                          <span className="ml-2 text-sm">{label}</span>
+                        </label>
+                      ))}
                     </div>
                   </div>
 
                   <Toggle
                     label="2단계 인증 활성화"
-                    checked={twoFactorAuth}
-                    onChange={(e) => setTwoFactorAuth(e.target.checked)}
+                    checked={security.twoFactorAuth}
+                    onChange={(e) => setSecurity({ ...security, twoFactorAuth: e.target.checked })}
                   />
                 </div>
               </div>
@@ -404,36 +309,40 @@ const Settings = () => {
                   <div>
                     <h3 className="text-base font-medium text-gray-700 mb-4">이메일 알림</h3>
                     <div className="space-y-4">
-                      <Toggle
-                        label="보안 알림"
-                        checked={emailNotifications.security}
-                        onChange={(e) => setEmailNotifications(prev => ({ ...prev, security: e.target.checked }))}
-                      />
-                      <Toggle
-                        label="시스템 업데이트"
-                        checked={emailNotifications.systemUpdate}
-                        onChange={(e) => setEmailNotifications(prev => ({ ...prev, systemUpdate: e.target.checked }))}
-                      />
-                      <Toggle
-                        label="주간 리포트"
-                        checked={emailNotifications.weeklyReport}
-                        onChange={(e) => setEmailNotifications(prev => ({ ...prev, weeklyReport: e.target.checked }))}
-                      />
+                      {Object.entries({
+                        security: '보안 알림',
+                        systemUpdate: '시스템 업데이트',
+                        weeklyReport: '주간 리포트',
+                      }).map(([key, label]) => (
+                        <Toggle
+                          key={key}
+                          label={label}
+                          checked={notifications.email[key as keyof typeof notifications.email]}
+                          onChange={(e) => setNotifications({
+                            ...notifications,
+                            email: { ...notifications.email, [key]: e.target.checked },
+                          })}
+                        />
+                      ))}
                     </div>
                   </div>
                   <div>
                     <h3 className="text-base font-medium text-gray-700 mb-4">브라우저 알림</h3>
                     <div className="space-y-4">
-                      <Toggle
-                        label="새 메시지"
-                        checked={browserNotifications.newMessage}
-                        onChange={(e) => setBrowserNotifications(prev => ({ ...prev, newMessage: e.target.checked }))}
-                      />
-                      <Toggle
-                        label="이벤트 알림"
-                        checked={browserNotifications.eventAlert}
-                        onChange={(e) => setBrowserNotifications(prev => ({ ...prev, eventAlert: e.target.checked }))}
-                      />
+                      {Object.entries({
+                        newMessage: '새 메시지',
+                        eventAlert: '이벤트 알림',
+                      }).map(([key, label]) => (
+                        <Toggle
+                          key={key}
+                          label={label}
+                          checked={notifications.browser[key as keyof typeof notifications.browser]}
+                          onChange={(e) => setNotifications({
+                            ...notifications,
+                            browser: { ...notifications.browser, [key]: e.target.checked },
+                          })}
+                        />
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -521,7 +430,7 @@ const Settings = () => {
               </button>
               <button
                 type="button"
-                onClick={getSaveHandler()}
+                onClick={handleSave}
                 className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition flex items-center"
               >
                 <FiSave className="mr-2" /> 저장
