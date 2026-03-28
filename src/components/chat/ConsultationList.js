@@ -1,5 +1,0 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-const ConsultationList = ({ items, title }) => {
-    return (_jsxs("div", { className: "p-4", children: [_jsx("h3", { className: "text-lg font-medium mb-4", children: title }), _jsx("div", { className: "space-y-4", children: items.map((item, index) => (_jsx("div", { className: "border-b border-gray-200 pb-2 cursor-pointer hover:bg-gray-50 p-2 rounded", children: _jsxs("div", { className: "flex items-center", children: [_jsx("div", { className: "w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-xs mr-2", children: index + 1 }), _jsxs("div", { className: "flex-1", children: [_jsx("p", { className: "text-sm font-medium", children: item.service }), _jsxs("div", { className: "flex text-xs text-gray-500", children: [_jsx("span", { className: "mr-2", children: item.date }), _jsx("span", { className: "mr-2", children: item.time }), _jsx("span", { children: item.counselor })] })] })] }) }, index))) })] }));
-};
-export default ConsultationList;
