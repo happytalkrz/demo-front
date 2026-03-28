@@ -24,37 +24,26 @@ const ChatSummary = ({
   apiSummary = null,
   summaryTimestamp = ''
 }: ChatSummaryProps) => {
-  // 각 섹션별 접기/펼치기 상태
-  const [showSummary1, setShowSummary1] = useState(true);
-  const [showSummary2, setShowSummary2] = useState(true);
-  const [showSummary3, setShowSummary3] = useState(true);
-  const [showSummary4, setShowSummary4] = useState(true);
+  const [expanded, setExpanded] = useState([true, true, true, true]);
 
-  // 감정에 맞는 이모티콘 반환
-  const getEmotionIcon = (emotion: string): string => {
-    switch (emotion.toLowerCase()) {
-      case '긍정':
-        return '😊';
-      case '부정':
-        return '😞';
-      case '중립':
-        return '😐';
-      default:
-        return '❓';
-    }
+  const toggleSection = (index: number) => {
+    setExpanded(prev => {
+      const next = [...prev];
+      next[index] = !next[index];
+      return next;
+    });
   };
 
-  // 섹션 토글 함수
-  const toggleSummary = (summaryId: number) => {
-    if (summaryId === 1) setShowSummary1(!showSummary1);
-    else if (summaryId === 2) setShowSummary2(!showSummary2);
-    else if (summaryId === 3) setShowSummary3(!showSummary3);
-    else if (summaryId === 4) setShowSummary4(!showSummary4);
+  const emotionIcons: Record<string, string> = {
+    '긍정': '😊',
+    '부정': '😞',
+    '중립': '😐'
   };
+
+  const getEmotionIcon = (emotion: string) => emotionIcons[emotion.toLowerCase()] ?? '❓';
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-      {/* 헤더 */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center">
           <div className="flex items-center justify-center w-5 h-5 rounded border border-gray-300 mr-2">
@@ -67,9 +56,7 @@ const ChatSummary = ({
         </div>
       </div>
 
-      {/* 내용 */}
       <div className="p-4 space-y-4">
-        {/* 상담 개요 */}
         <div>
           <div className="text-sm font-medium text-gray-900 mb-2">상담 개요</div>
           <div className="text-xs text-gray-600 bg-gray-50 p-3 rounded">
@@ -80,17 +67,16 @@ const ChatSummary = ({
           </div>
         </div>
 
-        {/* 상담 세부 요약 */}
         <div className="border-t border-gray-200 pt-4">
           <div className="flex justify-between items-center mb-2 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
-               onClick={() => toggleSummary(1)}>
+               onClick={() => toggleSection(0)}>
             <div className="flex items-center">
               <span className="text-sm font-medium text-gray-900">상담 세부 요약</span>
-              {showSummary1 ? <FiChevronUp className="ml-2 w-4 h-4" /> : <FiChevronDown className="ml-2 w-4 h-4" />}
+              {expanded[0] ? <FiChevronUp className="ml-2 w-4 h-4" /> : <FiChevronDown className="ml-2 w-4 h-4" />}
             </div>
             <div className="text-xs text-gray-500">2023.05.07 11:03 기준</div>
           </div>
-          {showSummary1 && (
+          {expanded[0] && (
             <div className="text-xs text-gray-600 pl-2 border-l-2 border-blue-200 ml-1 py-2 bg-blue-50 rounded-r">
               {summary ? (
                 <>
@@ -109,17 +95,16 @@ const ChatSummary = ({
           )}
         </div>
 
-        {/* 상담 핵심 1 */}
         <div className="border-t border-gray-200 pt-4">
           <div className="flex justify-between items-center mb-2 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
-               onClick={() => toggleSummary(2)}>
+               onClick={() => toggleSection(1)}>
             <div className="flex items-center">
               <span className="text-sm font-medium text-gray-900">상담 핵심 1</span>
-              {showSummary2 ? <FiChevronUp className="ml-2 w-4 h-4" /> : <FiChevronDown className="ml-2 w-4 h-4" />}
+              {expanded[1] ? <FiChevronUp className="ml-2 w-4 h-4" /> : <FiChevronDown className="ml-2 w-4 h-4" />}
             </div>
             <div className="text-xs text-gray-500">2023.05.07 11:03 기준</div>
           </div>
-          {showSummary2 && (
+          {expanded[1] && (
             <div className="text-xs text-gray-600 pl-2 border-l-2 border-green-200 ml-1 py-2 bg-green-50 rounded-r">
               고객: 내용 대화 기록에 없는 곳이<br/>
               상담사: 제품 정보 안내시 지식 인가<br/>
@@ -128,17 +113,16 @@ const ChatSummary = ({
           )}
         </div>
 
-        {/* 상담 핵심 2 */}
         <div className="border-t border-gray-200 pt-4">
           <div className="flex justify-between items-center mb-2 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
-               onClick={() => toggleSummary(3)}>
+               onClick={() => toggleSection(2)}>
             <div className="flex items-center">
               <span className="text-sm font-medium text-gray-900">상담 핵심 2</span>
-              {showSummary3 ? <FiChevronUp className="ml-2 w-4 h-4" /> : <FiChevronDown className="ml-2 w-4 h-4" />}
+              {expanded[2] ? <FiChevronUp className="ml-2 w-4 h-4" /> : <FiChevronDown className="ml-2 w-4 h-4" />}
             </div>
             <div className="text-xs text-gray-500">2023.05.07 11:03 기준</div>
           </div>
-          {showSummary3 && (
+          {expanded[2] && (
             <div className="text-xs text-gray-600 pl-2 border-l-2 border-yellow-200 ml-1 py-2 bg-yellow-50 rounded-r">
               고객: 내용 대화 기록에 없는 곳이<br/>
               상담사: 제품 정보 안내시 지식 인가<br/>
@@ -147,23 +131,22 @@ const ChatSummary = ({
           )}
         </div>
 
-        {/* API 응답 데이터 (로딩 중이거나 응답이 있을 때만 표시) */}
         {(isLoading || apiSummary) && (
           <div className="border-t border-gray-200 pt-4">
             <div className="flex justify-between items-center mb-2 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
-                 onClick={() => toggleSummary(4)}>
+                 onClick={() => toggleSection(3)}>
               <div className="flex items-center">
                 <span className="text-sm font-medium text-gray-900">상담핵심</span>
                 {!isLoading && apiSummary && (
                   <span className="ml-2 text-xl">{getEmotionIcon(apiSummary.emotion)}</span>
                 )}
-                {showSummary4 ? <FiChevronUp className="ml-2 w-4 h-4" /> : <FiChevronDown className="ml-2 w-4 h-4" />}
+                {expanded[3] ? <FiChevronUp className="ml-2 w-4 h-4" /> : <FiChevronDown className="ml-2 w-4 h-4" />}
               </div>
               <div className="text-xs text-gray-500">
                 {isLoading ? '생성 중...' : summaryTimestamp}
               </div>
             </div>
-            {showSummary4 && (
+            {expanded[3] && (
               <div className="text-xs text-gray-600 pl-2 border-l-2 border-purple-200 ml-1 py-2 bg-purple-50 rounded-r">
                 {isLoading ? (
                   <div className="flex items-center justify-center py-8">
@@ -189,7 +172,6 @@ const ChatSummary = ({
           </div>
         )}
 
-        {/* 요약 버튼 */}
         <div className="border-t border-gray-200 pt-4">
           <button
             onClick={onSummarize}
