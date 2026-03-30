@@ -1,24 +1,186 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { useState } from 'react';
-import { FiEdit2, FiChevronLeft, FiChevronRight, FiChevronsLeft, FiChevronsRight } from 'react-icons/fi';
-import { useNavigate } from 'react-router-dom';
+import { useState, useMemo } from 'react';
+import { FiEdit2, FiEye, FiPlus, FiTrash2 } from 'react-icons/fi';
+import DataTable from '../components/common/DataTable';
+import Modal from '../components/common/Modal';
+import Dialog from '../components/common/Dialog';
+import Input from '../components/form/Input';
+import Select from '../components/form/Select';
+import { useToast } from '../hooks/useToast';
+import { initialPrompts, statusOptions } from '../data/promptData';
 const PromptManagement = () => {
     const [searchTerm, setSearchTerm] = useState('');
-    const [activePage, setActivePage] = useState(1);
-    const navigate = useNavigate();
-    // 프롬프트 데이터
-    const promptData = [
-        { id: 1, name: '상담 중 요약', lastModified: '-', modifiedBy: '-', status: '기본 프롬프트 사용 중' },
-        { id: 2, name: '상담 종료 요약', lastModified: '2025.04.22 09:15', modifiedBy: '박관리', status: '커스텀 프롬프트 사용 중' },
-    ];
-    // 페이지 배열 생성
-    const pages = [1, 2, 3, 4, 5];
-    // 프롬프트 편집 페이지로 이동
-    const handleEditPrompt = (promptName) => {
-        navigate('/prompts', { state: { promptName } });
+    const [currentPage, setCurrentPage] = useState(1);
+    const [sortColumn, setSortColumn] = useState(null);
+    const [sortDirection, setSortDirection] = useState('asc');
+    const [prompts, setPrompts] = useState(initialPrompts);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalMode, setModalMode] = useState('add');
+    const [editingId, setEditingId] = useState(null);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+    const [previewPrompt, setPreviewPrompt] = useState(null);
+    const [formData, setFormData] = useState({
+        name: '',
+        content: '',
+        status: '기본 프롬프트 사용 중',
+        isDefault: false
+    });
+    const toast = useToast();
+    const itemsPerPage = 10;
+    const formatTimestamp = () => new Date().toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+    }).replace(/\s/g, ' ');
+    const openAddModal = () => {
+        setModalMode('add');
+        setFormData({
+            name: '',
+            content: '',
+            status: '기본 프롬프트 사용 중',
+            isDefault: false
+        });
+        setEditingId(null);
+        setIsModalOpen(true);
     };
-    return (_jsxs("div", { className: "flex flex-col h-full", children: [_jsx("h1", { className: "text-2xl font-semibold mb-4", children: "\uD504\uB86C\uD504\uD2B8 \uAD00\uB9AC" }), _jsx("p", { className: "text-sm text-gray-600 mb-6", children: "\uC5D0\uD2F0\uD1A0\uC2A4 AI \uAE30\uB2A5\uBCC4 \uD504\uB86C\uD504\uD2B8 \uC124\uC815 \uD654\uBA74\uC744 \uD655\uC778\uD558\uACE0 \uC218\uC815\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4. \uBCC4\uB3C4\uB85C \uC124\uC815\uD558\uC9C0 \uC54A\uC740 \uACBD\uC6B0, \uC2DC\uC2A4\uD15C \uAE30\uBCF8 \uD504\uB86C\uD504\uD2B8\uAC00 \uC790\uB3D9\uC73C\uB85C \uC801\uC6A9\uB429\uB2C8\uB2E4." }), _jsxs("div", { className: "bg-white rounded-lg border", children: [_jsxs("div", { className: "p-4 flex space-x-4", children: [_jsx("button", { className: "flex items-center justify-center h-10 px-4 border border-gray-300 bg-white text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none", children: "\uC804\uCCB4" }), _jsxs("div", { className: "relative flex-grow", children: [_jsx("input", { type: "text", placeholder: "\uC0C1\uB2F4\uC0AC\uBA85/\uC544\uC774\uB514 \uAC80\uC0C9", value: searchTerm, onChange: (e) => setSearchTerm(e.target.value), className: "w-full h-10 pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }), _jsx("div", { className: "absolute inset-y-0 right-0 pr-3 flex items-center", children: _jsx("svg", { className: "h-5 w-5 text-gray-400", xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 20 20", fill: "currentColor", children: _jsx("path", { fillRule: "evenodd", d: "M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z", clipRule: "evenodd" }) }) })] })] }), _jsx("div", { className: "w-full", children: _jsx("div", { className: "w-full overflow-x-auto", children: _jsxs("table", { className: "w-full text-sm text-left text-gray-500", children: [_jsx("thead", { className: "text-xs text-gray-700 uppercase bg-gray-100", children: _jsxs("tr", { children: [_jsx("th", { scope: "col", className: "px-6 py-3 w-1/4", children: "\uAE30\uB2A5\uBA85" }), _jsx("th", { scope: "col", className: "px-6 py-3 w-1/4", children: "\uCD5C\uADFC \uC218\uC815\uC77C" }), _jsx("th", { scope: "col", className: "px-6 py-3 w-1/4", children: "\uC218\uC815\uC790" }), _jsx("th", { scope: "col", className: "px-6 py-3 w-1/4", children: "\uC0C1\uD0DC" })] }) }), _jsx("tbody", { children: promptData.map((prompt) => (_jsxs("tr", { className: "bg-white border-b hover:bg-gray-50", children: [_jsx("td", { className: "px-6 py-4", children: prompt.name }), _jsx("td", { className: "px-6 py-4", children: prompt.lastModified }), _jsx("td", { className: "px-6 py-4", children: prompt.modifiedBy }), _jsx("td", { className: "px-6 py-4", children: _jsxs("div", { className: "flex items-center justify-between", children: [_jsx("span", { className: "bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded", children: prompt.status }), _jsx("button", { onClick: () => handleEditPrompt(prompt.name), className: "text-gray-500 hover:text-blue-600", children: _jsx(FiEdit2, { size: 18 }) })] }) })] }, prompt.id))) })] }) }) }), _jsxs("div", { className: "flex items-center justify-center p-4", children: [_jsx("button", { className: "px-2 py-1 mx-1 rounded-md", children: _jsx(FiChevronsLeft, {}) }), _jsx("button", { className: "px-2 py-1 mx-1 rounded-md", children: _jsx(FiChevronLeft, {}) }), pages.map((page) => (_jsx("button", { onClick: () => setActivePage(page), className: `px-3 py-1 mx-1 rounded-md ${activePage === page
-                                    ? 'bg-gray-800 text-white'
-                                    : 'text-gray-700 hover:bg-gray-100'}`, children: page }, page))), _jsx("button", { className: "px-2 py-1 mx-1 rounded-md", children: _jsx(FiChevronRight, {}) }), _jsx("button", { className: "px-2 py-1 mx-1 rounded-md", children: _jsx(FiChevronsRight, {}) })] })] }), _jsxs("div", { className: "bg-gray-100 rounded-lg p-4 mt-6", children: [_jsx("h2", { className: "text-md font-semibold mb-2", children: "\uD504\uB86C\uD504\uD2B8 \uAD00\uB9AC \uC815\uCC45" }), _jsxs("ul", { className: "list-disc pl-5 space-y-1 text-sm text-gray-700", children: [_jsx("li", { children: "\uCEE4\uC2A4\uD140 \uD504\uB86C\uD504\uD2B8\uB97C \uC124\uC815\uD558\uC9C0 \uC54A\uC740 \uAE30\uB2A5\uC740 \uC2DC\uC2A4\uD15C \uAE30\uBCF8 \uD504\uB86C\uD504\uD2B8\uB97C \uC0AC\uC6A9\uD569\uB2C8\uB2E4." }), _jsx("li", { children: "\uD504\uB86C\uD504\uD2B8\uB97C \uC218\uC815\uD558\uC5EC \uC800\uC7A5\uD55C \uACBD\uC6B0, \uD574\uB2F9 \uAE30\uB2A5\uC740 \uCEE4\uC2A4\uD140 \uD504\uB86C\uD504\uD2B8\uB97C \uC0AC\uC6A9\uD569\uB2C8\uB2E4." }), _jsx("li", { children: "\uCD08\uAE30\uD654 \uAE30\uB2A5\uC744 \uD1B5\uD574 \uC5B8\uC81C\uB4E0 \uAE30\uBCF8 \uD504\uB86C\uD504\uD2B8\uB85C \uBCF5\uAD6C\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4." })] })] })] }));
+    const openEditModal = (prompt) => {
+        setModalMode('edit');
+        setFormData({
+            name: prompt.name,
+            content: prompt.content,
+            status: prompt.status,
+            isDefault: prompt.isDefault
+        });
+        setEditingId(prompt.id);
+        setIsModalOpen(true);
+    };
+    const handleConfirmDelete = () => {
+        if (deleteTarget) {
+            setPrompts(prev => prev.filter(prompt => prompt.id !== deleteTarget.id));
+            toast.success('프롬프트 삭제 완료', `"${deleteTarget.name}" 프롬프트가 성공적으로 삭제되었습니다.`);
+            setIsDeleteDialogOpen(false);
+            setDeleteTarget(null);
+        }
+    };
+    const handleFormChange = (field, value) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
+    const handleSave = () => {
+        if (!formData.name.trim() || !formData.content.trim())
+            return;
+        const timestamp = formatTimestamp();
+        const updatedFormData = { ...formData, lastModified: timestamp, modifiedBy: '관리자' };
+        if (modalMode === 'add') {
+            const newPrompt = {
+                id: Math.max(...prompts.map(p => p.id)) + 1,
+                ...updatedFormData,
+                isDefault: formData.isDefault
+            };
+            setPrompts(prev => [...prev, newPrompt]);
+            toast.success('프롬프트 추가 완료', `"${formData.name}" 프롬프트가 성공적으로 추가되었습니다.`);
+        }
+        else if (modalMode === 'edit' && editingId) {
+            setPrompts(prev => prev.map(prompt => prompt.id === editingId ? { ...prompt, ...updatedFormData, isDefault: formData.isDefault } : prompt));
+            toast.success('프롬프트 수정 완료', `"${formData.name}" 프롬프트가 성공적으로 수정되었습니다.`);
+        }
+        setIsModalOpen(false);
+        setEditingId(null);
+    };
+    // 검색 필터링된 데이터
+    const filteredData = useMemo(() => {
+        let filtered = prompts;
+        if (searchTerm) {
+            filtered = filtered.filter(prompt => prompt.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                prompt.modifiedBy.toLowerCase().includes(searchTerm.toLowerCase()));
+        }
+        // 정렬 적용
+        if (sortColumn) {
+            filtered = [...filtered].sort((a, b) => {
+                const aValue = a[sortColumn];
+                const bValue = b[sortColumn];
+                if (typeof aValue === 'string' && typeof bValue === 'string') {
+                    const comparison = aValue.localeCompare(bValue);
+                    return sortDirection === 'asc' ? comparison : -comparison;
+                }
+                if (typeof aValue === 'number' && typeof bValue === 'number') {
+                    return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+                }
+                return 0;
+            });
+        }
+        return filtered;
+    }, [searchTerm, sortColumn, sortDirection]);
+    // 페이지네이션 적용
+    const paginatedData = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        return filteredData.slice(startIndex, endIndex);
+    }, [filteredData, currentPage]);
+    // 페이지네이션 정보
+    const paginationInfo = {
+        currentPage,
+        totalPages: Math.ceil(filteredData.length / itemsPerPage),
+        totalItems: filteredData.length,
+        itemsPerPage,
+    };
+    // 정렬 핸들러
+    const handleSort = (column, direction) => {
+        setSortColumn(column);
+        setSortDirection(direction);
+    };
+    // 페이지 변경 핸들러
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+    };
+    // 테이블 컬럼 정의
+    const columns = [
+        {
+            key: 'name',
+            label: '기능명',
+            sortable: true,
+        },
+        {
+            key: 'lastModified',
+            label: '최근 수정일',
+            sortable: true,
+        },
+        {
+            key: 'modifiedBy',
+            label: '수정자',
+            sortable: true,
+        },
+        {
+            key: 'status',
+            label: '상태',
+            sortable: false,
+            render: (value, row) => (_jsxs("div", { className: "flex items-center justify-between", children: [_jsx("span", { className: "bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded", children: value }), _jsxs("div", { className: "flex items-center space-x-2", children: [_jsx("button", { onClick: () => {
+                                    setPreviewPrompt(row);
+                                    setIsPreviewModalOpen(true);
+                                }, className: "text-gray-500 hover:text-green-600", title: "\uBBF8\uB9AC\uBCF4\uAE30", children: _jsx(FiEye, { size: 18 }) }), _jsx("button", { onClick: () => openEditModal(row), className: "text-gray-500 hover:text-blue-600", title: "\uD3B8\uC9D1", children: _jsx(FiEdit2, { size: 18 }) }), _jsx("button", { onClick: () => {
+                                    setDeleteTarget(row);
+                                    setIsDeleteDialogOpen(true);
+                                }, className: "text-gray-500 hover:text-red-600", title: "\uC0AD\uC81C", children: _jsx(FiTrash2, { size: 18 }) })] })] })),
+        },
+    ];
+    return (_jsxs("div", { className: "flex flex-col h-full", children: [_jsxs("div", { className: "flex justify-between items-center mb-4", children: [_jsx("h1", { className: "text-2xl font-semibold", children: "\uD504\uB86C\uD504\uD2B8 \uAD00\uB9AC" }), _jsxs("button", { onClick: openAddModal, className: "flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500", children: [_jsx(FiPlus, { className: "w-4 h-4 mr-2" }), "\uD504\uB86C\uD504\uD2B8 \uCD94\uAC00"] })] }), _jsx("p", { className: "text-sm text-gray-600 mb-6", children: "\uC5D0\uD2F0\uD1A0\uC2A4 AI \uAE30\uB2A5\uBCC4 \uD504\uB86C\uD504\uD2B8 \uC124\uC815 \uD654\uBA74\uC744 \uD655\uC778\uD558\uACE0 \uC218\uC815\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4. \uBCC4\uB3C4\uB85C \uC124\uC815\uD558\uC9C0 \uC54A\uC740 \uACBD\uC6B0, \uC2DC\uC2A4\uD15C \uAE30\uBCF8 \uD504\uB86C\uD504\uD2B8\uAC00 \uC790\uB3D9\uC73C\uB85C \uC801\uC6A9\uB429\uB2C8\uB2E4." }), _jsxs("div", { className: "bg-white rounded-lg border", children: [_jsxs("div", { className: "p-4 flex space-x-4", children: [_jsx("button", { className: "flex items-center justify-center h-10 px-4 border border-gray-300 bg-white text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none", children: "\uC804\uCCB4" }), _jsxs("div", { className: "relative flex-grow", children: [_jsx("input", { type: "text", placeholder: "\uAE30\uB2A5\uBA85/\uC218\uC815\uC790 \uAC80\uC0C9", value: searchTerm, onChange: (e) => setSearchTerm(e.target.value), className: "w-full h-10 pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }), _jsx("div", { className: "absolute inset-y-0 right-0 pr-3 flex items-center", children: _jsx("svg", { className: "h-5 w-5 text-gray-400", xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 20 20", fill: "currentColor", children: _jsx("path", { fillRule: "evenodd", d: "M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z", clipRule: "evenodd" }) }) })] })] }), _jsx(DataTable, { data: paginatedData, columns: columns, pagination: paginationInfo, onPageChange: handlePageChange, onSort: handleSort })] }), _jsxs("div", { className: "bg-gray-100 rounded-lg p-4 mt-6", children: [_jsx("h2", { className: "text-md font-semibold mb-2", children: "\uD504\uB86C\uD504\uD2B8 \uAD00\uB9AC \uC815\uCC45" }), _jsxs("ul", { className: "list-disc pl-5 space-y-1 text-sm text-gray-700", children: [_jsx("li", { children: "\uCEE4\uC2A4\uD140 \uD504\uB86C\uD504\uD2B8\uB97C \uC124\uC815\uD558\uC9C0 \uC54A\uC740 \uAE30\uB2A5\uC740 \uC2DC\uC2A4\uD15C \uAE30\uBCF8 \uD504\uB86C\uD504\uD2B8\uB97C \uC0AC\uC6A9\uD569\uB2C8\uB2E4." }), _jsx("li", { children: "\uD504\uB86C\uD504\uD2B8\uB97C \uC218\uC815\uD558\uC5EC \uC800\uC7A5\uD55C \uACBD\uC6B0, \uD574\uB2F9 \uAE30\uB2A5\uC740 \uCEE4\uC2A4\uD140 \uD504\uB86C\uD504\uD2B8\uB97C \uC0AC\uC6A9\uD569\uB2C8\uB2E4." }), _jsx("li", { children: "\uCD08\uAE30\uD654 \uAE30\uB2A5\uC744 \uD1B5\uD574 \uC5B8\uC81C\uB4E0 \uAE30\uBCF8 \uD504\uB86C\uD504\uD2B8\uB85C \uBCF5\uAD6C\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4." })] })] }), _jsx(Modal, { isOpen: isModalOpen, onClose: () => {
+                    setIsModalOpen(false);
+                    setEditingId(null);
+                }, title: modalMode === 'add' ? '프롬프트 추가' : '프롬프트 편집', size: "lg", children: _jsxs("div", { className: "space-y-4", children: [_jsx(Input, { label: "\uD504\uB86C\uD504\uD2B8 \uC774\uB984", value: formData.name, onChange: (e) => handleFormChange('name', e.target.value), placeholder: "\uD504\uB86C\uD504\uD2B8 \uC774\uB984\uC744 \uC785\uB825\uD558\uC138\uC694", required: true }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "\uD504\uB86C\uD504\uD2B8 \uB0B4\uC6A9" }), _jsx("textarea", { value: formData.content, onChange: (e) => handleFormChange('content', e.target.value), placeholder: "\uD504\uB86C\uD504\uD2B8 \uB0B4\uC6A9\uC744 \uC785\uB825\uD558\uC138\uC694", rows: 6, className: "block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none", required: true })] }), _jsx(Select, { label: "\uC0C1\uD0DC", value: formData.status, onChange: (e) => handleFormChange('status', e.target.value), options: statusOptions }), _jsxs("div", { className: "flex justify-end space-x-3 pt-4", children: [_jsx("button", { onClick: () => {
+                                        setIsModalOpen(false);
+                                        setEditingId(null);
+                                    }, className: "px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500", children: "\uCDE8\uC18C" }), _jsx("button", { onClick: handleSave, className: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500", disabled: !formData.name.trim() || !formData.content.trim(), children: modalMode === 'add' ? '추가' : '저장' })] })] }) }), _jsx(Dialog, { isOpen: isDeleteDialogOpen, onClose: () => {
+                    setIsDeleteDialogOpen(false);
+                    setDeleteTarget(null);
+                }, onConfirm: handleConfirmDelete, title: "\uD504\uB86C\uD504\uD2B8 \uC0AD\uC81C", message: deleteTarget ? (_jsxs("div", { children: [_jsx("p", { className: "mb-2", children: "\uC815\uB9D0\uB85C \uB2E4\uC74C \uD504\uB86C\uD504\uD2B8\uB97C \uC0AD\uC81C\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?" }), _jsxs("p", { className: "font-semibold text-gray-900", children: ["\"", deleteTarget.name, "\""] }), _jsx("p", { className: "mt-2 text-sm text-gray-600", children: "\uC0AD\uC81C\uB41C \uD504\uB86C\uD504\uD2B8\uB294 \uBCF5\uAD6C\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4." })] })) : null, confirmText: "\uC0AD\uC81C", cancelText: "\uCDE8\uC18C", variant: "danger" }), _jsx(Modal, { isOpen: isPreviewModalOpen, onClose: () => {
+                    setIsPreviewModalOpen(false);
+                    setPreviewPrompt(null);
+                }, title: "\uD504\uB86C\uD504\uD2B8 \uBBF8\uB9AC\uBCF4\uAE30", size: "lg", children: previewPrompt && (_jsxs("div", { className: "space-y-4", children: [_jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-2", children: "\uD504\uB86C\uD504\uD2B8 \uC774\uB984" }), _jsx("div", { className: "w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-gray-900", children: previewPrompt.name })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-2", children: "\uD504\uB86C\uD504\uD2B8 \uB0B4\uC6A9" }), _jsx("div", { className: "w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-gray-900 whitespace-pre-wrap min-h-[150px] max-h-[300px] overflow-y-auto", children: previewPrompt.content })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-2", children: "\uC0C1\uD0DC" }), _jsx("div", { className: "w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-gray-900", children: previewPrompt.status })] }), _jsxs("div", { className: "grid grid-cols-2 gap-4", children: [_jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-2", children: "\uCD5C\uADFC \uC218\uC815\uC77C" }), _jsx("div", { className: "w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-gray-900", children: previewPrompt.lastModified })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-2", children: "\uC218\uC815\uC790" }), _jsx("div", { className: "w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-gray-900", children: previewPrompt.modifiedBy })] })] }), _jsx("div", { className: "flex justify-end pt-4", children: _jsx("button", { onClick: () => {
+                                    setIsPreviewModalOpen(false);
+                                    setPreviewPrompt(null);
+                                }, className: "px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500", children: "\uB2EB\uAE30" }) })] })) })] }));
 };
 export default PromptManagement;

@@ -29,7 +29,7 @@ export const ToastProvider = ({ children }: ToastProviderProps) => {
     const newToast: ToastType = {
       ...toast,
       id,
-      duration: toast.duration || 5000,
+      duration: toast.duration || 3000,
     };
 
     setToasts(prev => [...prev, newToast]);
