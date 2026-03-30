@@ -76,7 +76,7 @@ const Dialog = ({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="flex min-h-screen items-center justify-center p-2 sm:p-4">
         {/* Backdrop */}
         <div
           className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
@@ -84,9 +84,9 @@ const Dialog = ({
         />
 
         {/* Dialog */}
-        <div className="relative w-full max-w-md bg-white rounded-lg shadow-xl transform transition-all">
+        <div className="relative w-full sm:max-w-md bg-white rounded-lg shadow-xl transform transition-all">
           {/* Header */}
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <div className="flex items-center space-x-3">
               {showIcon && getIcon()}
               <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
@@ -100,7 +100,7 @@ const Dialog = ({
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end space-x-3 px-6 py-4 bg-gray-50 rounded-b-lg">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end space-y-3 sm:space-y-0 sm:space-x-3 px-4 sm:px-6 py-4 bg-gray-50 rounded-b-lg">
             <button
               onClick={onClose}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
