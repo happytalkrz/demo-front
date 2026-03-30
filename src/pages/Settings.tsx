@@ -6,6 +6,7 @@ import Select from '../components/form/Select';
 import Toggle from '../components/form/Toggle';
 import { SelectOption } from '../types/common';
 import { useToast } from '../hooks/useToast';
+import { useThemeContext } from '../contexts/ThemeContext';
 
 interface TabConfig {
   id: string;
@@ -45,6 +46,7 @@ const BROWSER_NOTIFICATIONS = {
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const { success, error } = useToast();
+  const { theme, setTheme } = useThemeContext();
 
   const [profile, setProfile] = useState({
     name: '관리자',
@@ -55,7 +57,6 @@ const Settings = () => {
     systemName: '관리 시스템',
     language: 'ko',
     timezone: 'Asia/Seoul',
-    theme: 'light',
   });
 
   const [notifications, setNotifications] = useState({
@@ -256,8 +257,8 @@ const Settings = () => {
                             type="radio"
                             name="theme"
                             value={value}
-                            checked={general.theme === value}
-                            onChange={(e) => setGeneral({ ...general, theme: e.target.value })}
+                            checked={theme === value}
+                            onChange={(e) => setTheme(e.target.value as 'light' | 'dark' | 'system')}
                             className="text-blue-600 focus:ring-blue-500"
                           />
                           <span className="ml-2">{label}</span>
