@@ -6,6 +6,7 @@ import Select from '../components/form/Select';
 import Toggle from '../components/form/Toggle';
 import { SelectOption } from '../types/common';
 import { useToast } from '../hooks/useToast';
+import { useThemeContext } from '../contexts/ThemeContext';
 
 interface TabConfig {
   id: string;
@@ -45,6 +46,7 @@ const BROWSER_NOTIFICATIONS = {
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const { success, error } = useToast();
+  const { theme, setTheme } = useThemeContext();
 
   const [profile, setProfile] = useState({
     name: '관리자',
@@ -55,7 +57,6 @@ const Settings = () => {
     systemName: '관리 시스템',
     language: 'ko',
     timezone: 'Asia/Seoul',
-    theme: 'light',
   });
 
   const [notifications, setNotifications] = useState({
@@ -156,12 +157,12 @@ const Settings = () => {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold mb-6">설정</h1>
+      <h1 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-white">설정</h1>
 
       <div className="flex flex-col md:flex-row gap-6">
         {/* 탭 메뉴 */}
         <div className="md:w-1/4">
-          <div className="bg-white rounded-lg shadow">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
             <ul>
               {tabs.map((tab) => {
                 const Icon = tab.icon;
@@ -169,7 +170,9 @@ const Settings = () => {
                   <li key={tab.id}>
                     <button
                       className={`flex items-center w-full px-4 py-3 text-left ${
-                        activeTab === tab.id ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-600' : 'hover:bg-gray-50'
+                        activeTab === tab.id
+                          ? 'bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-300 border-l-4 border-blue-600 dark:border-blue-400'
+                          : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
                       }`}
                       onClick={() => setActiveTab(tab.id)}
                     >
@@ -185,17 +188,17 @@ const Settings = () => {
 
         {/* 설정 내용 */}
         <div className="md:w-3/4">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             {activeTab === 'profile' && (
               <div>
-                <h2 className="text-lg font-semibold mb-6">프로필 설정</h2>
+                <h2 className="text-lg font-semibold mb-6 text-gray-900 dark:text-white">프로필 설정</h2>
                 <div className="space-y-6">
                   <div className="flex items-center space-x-6">
                     <div className="flex-shrink-0">
-                      <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center">
-                        <FiUser className="w-8 h-8 text-gray-400" />
+                      <div className="w-20 h-20 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center">
+                        <FiUser className="w-8 h-8 text-gray-400 dark:text-gray-300" />
                       </div>
-                      <button className="mt-2 text-sm text-blue-600 hover:text-blue-800">
+                      <button className="mt-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
                         이미지 변경
                       </button>
                     </div>
@@ -222,7 +225,7 @@ const Settings = () => {
 
             {activeTab === 'general' && (
               <div>
-                <h2 className="text-lg font-semibold mb-6">일반 설정</h2>
+                <h2 className="text-lg font-semibold mb-6 text-gray-900 dark:text-white">일반 설정</h2>
                 <div className="space-y-6">
                   <Input
                     label="시스템 이름"
@@ -246,7 +249,7 @@ const Settings = () => {
                   />
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                       기본 테마
                     </label>
                     <div className="flex gap-4">
@@ -256,11 +259,11 @@ const Settings = () => {
                             type="radio"
                             name="theme"
                             value={value}
-                            checked={general.theme === value}
-                            onChange={(e) => setGeneral({ ...general, theme: e.target.value })}
+                            checked={theme === value}
+                            onChange={(e) => setTheme(e.target.value as 'light' | 'dark' | 'system')}
                             className="text-blue-600 focus:ring-blue-500"
                           />
-                          <span className="ml-2">{label}</span>
+                          <span className="ml-2 text-gray-700 dark:text-gray-300">{label}</span>
                         </label>
                       ))}
                     </div>
@@ -271,7 +274,7 @@ const Settings = () => {
 
             {activeTab === 'security' && (
               <div>
-                <h2 className="text-lg font-semibold mb-6">보안 설정</h2>
+                <h2 className="text-lg font-semibold mb-6 text-gray-900 dark:text-white">보안 설정</h2>
                 <div className="space-y-6">
                   <Input
                     label="세션 타임아웃 (분)"
@@ -282,7 +285,7 @@ const Settings = () => {
                   />
 
                   <div>
-                    <h3 className="text-base font-medium text-gray-900 mb-4">비밀번호 변경</h3>
+                    <h3 className="text-base font-medium text-gray-900 dark:text-white mb-4">비밀번호 변경</h3>
                     <div className="space-y-4">
                       <Input
                         label="현재 비밀번호"
@@ -309,7 +312,7 @@ const Settings = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                       비밀번호 정책
                     </label>
                     <div className="space-y-2">
@@ -324,7 +327,7 @@ const Settings = () => {
                             })}
                             className="text-blue-600 focus:ring-blue-500 rounded"
                           />
-                          <span className="ml-2 text-sm">{label}</span>
+                          <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{label}</span>
                         </label>
                       ))}
                     </div>
@@ -341,10 +344,10 @@ const Settings = () => {
 
             {activeTab === 'notifications' && (
               <div>
-                <h2 className="text-lg font-semibold mb-6">알림 설정</h2>
+                <h2 className="text-lg font-semibold mb-6 text-gray-900 dark:text-white">알림 설정</h2>
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-base font-medium text-gray-700 mb-4">이메일 알림</h3>
+                    <h3 className="text-base font-medium text-gray-700 dark:text-gray-300 mb-4">이메일 알림</h3>
                     <div className="space-y-4">
                       {Object.entries(EMAIL_NOTIFICATIONS).map(([key, label]) => (
                         <Toggle
@@ -360,7 +363,7 @@ const Settings = () => {
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-base font-medium text-gray-700 mb-4">브라우저 알림</h3>
+                    <h3 className="text-base font-medium text-gray-700 dark:text-gray-300 mb-4">브라우저 알림</h3>
                     <div className="space-y-4">
                       {Object.entries(BROWSER_NOTIFICATIONS).map(([key, label]) => (
                         <Toggle
@@ -381,16 +384,16 @@ const Settings = () => {
 
             {activeTab === 'permissions' && (
               <div>
-                <h2 className="text-lg font-semibold mb-6">권한 관리</h2>
+                <h2 className="text-lg font-semibold mb-6 text-gray-900 dark:text-white">권한 관리</h2>
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                       역할별 권한
                     </label>
                     <div className="space-y-4">
                       {rolePermissions.map((role) => (
-                        <div key={role.role} className="border p-4 rounded-md">
-                          <h3 className="font-medium mb-2">{role.role}</h3>
+                        <div key={role.role} className="border border-gray-200 dark:border-gray-600 p-4 rounded-md">
+                          <h3 className="font-medium mb-2 text-gray-900 dark:text-white">{role.role}</h3>
                           <div className="space-y-2">
                             {role.permissions.map((perm) => (
                               <label key={perm.label} className="flex items-center">
@@ -399,7 +402,7 @@ const Settings = () => {
                                   defaultChecked={perm.checked}
                                   className="text-blue-600 focus:ring-blue-500 rounded"
                                 />
-                                <span className="ml-2 text-sm">{perm.label}</span>
+                                <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{perm.label}</span>
                               </label>
                             ))}
                           </div>
@@ -414,14 +417,14 @@ const Settings = () => {
             <div className="mt-8 flex justify-end">
               <button
                 type="button"
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition mr-2"
+                className="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 transition mr-2"
               >
                 취소
               </button>
               <button
                 type="button"
                 onClick={handleSave}
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition flex items-center"
+                className="px-4 py-2 bg-blue-500 dark:bg-blue-600 text-white rounded-md hover:bg-blue-600 dark:hover:bg-blue-500 transition flex items-center"
               >
                 <FiSave className="mr-2" /> 저장
               </button>

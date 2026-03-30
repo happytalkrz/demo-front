@@ -47,17 +47,17 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
         fixed md:static
         top-0 left-0
         h-full w-64
-        bg-white shadow-md
+        bg-white dark:bg-gray-800 shadow-md
         transform transition-transform duration-300 ease-in-out
         z-50 md:z-auto
         ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
-        <div className="p-4 border-b flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-gray-800">관리 시스템</h1>
+        <div className="p-4 border-b dark:border-gray-700 flex items-center justify-between">
+          <h1 className="text-xl font-semibold text-gray-800 dark:text-white">관리 시스템</h1>
           {/* 모바일 닫기 버튼 */}
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 md:hidden"
+            className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 md:hidden"
           >
             <FiX className="w-5 h-5" />
           </button>
@@ -69,8 +69,10 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                 <Link
                   to={path}
                   onClick={onClose}
-                  className={`flex items-center px-4 py-3 hover:bg-gray-100 transition-colors ${
-                    isActive(path) ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600' : 'text-gray-700'
+                  className={`flex items-center px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                    isActive(path)
+                      ? 'bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-300 border-r-2 border-blue-600 dark:border-blue-400'
+                      : 'text-gray-700 dark:text-gray-300'
                   }`}
                 >
                   <Icon className="mr-3" />
