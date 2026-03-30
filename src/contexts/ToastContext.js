@@ -15,7 +15,7 @@ export const ToastProvider = ({ children }) => {
         const newToast = {
             ...toast,
             id,
-            duration: toast.duration || 5000,
+            duration: toast.duration || 3000,
         };
         setToasts(prev => [...prev, newToast]);
         // Auto remove after duration
